@@ -1,0 +1,116 @@
+\documentclass[11pt]{article}
+
+\usepackage[letterpaper]{geometry}
+%\usepackage[letterpaper,left=2.5cm,top=2cm,right=2.5cm,bottom=2cm]{geometry}
+
+\usepackage[utf8]{inputenc}
+\usepackage{mathpazo}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{siunitx}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{tcolorbox}
+
+% Hyperlinks with decent looking default colors.
+\usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{
+  colorlinks,
+  linkcolor={red!50!black},
+  citecolor={blue!50!black},
+  urlcolor={blue!80!black}
+}
+
+% For those sexy spaced low small caps from classic-thesis!
+\usepackage{microtype}
+\usepackage{textcase}
+\DeclareRobustCommand{\spacedlowsmallcaps}[1]{%
+  \textls[80]{\scshape\MakeTextLowercase{#1}}%
+}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy} 
+\fancyhead{}
+\rhead{Ali Ramadhan}
+\lhead{6.339 Project 1---Finite Difference Methods}
+\cfoot{\thepage}
+
+\title{\spacedlowsmallcaps{6.339: Numerical Methods for Partial Differential Equations}\\ \spacedlowsmallcaps{Project one: Finite Difference Methods}}
+\author{Ali Ramadhan (\texttt{alir@mit.edu})}
+\date{\today}
+
+\renewcommand\thesection{\Alph{section}}
+
+\begin{document}
+\maketitle
+
+\begin{tcolorbox}
+  \textit{Question 1(a)---Derive the governing boundary condition for $p'$ on boundary. The error in the boundary condition you derived should be the same as that in the linearized Euler equation.}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+  \textit{Question 1(b)---Derive a numerical scheme for the governing equation, using second-order finite-difference in space.}
+\end{tcolorbox}
+A second-order finite-difference approximation for the first derivative of an arbitrary real-valued and twice-differentiable function $f$ on a grid would be 
+\begin{equation} \label{eq:firstD}
+  \frac{\partial f(x_i)}{\partial x} \approx \frac{f(x_{i+1}) - f(x_{i-1})}{2\Delta x}
+\end{equation}
+while the second derivative can be approximated as
+\begin{equation} \label{eq:secondD}
+  \frac{\partial^2 f(x_i)}{\partial x^2} \approx \frac{f(x_{i+1}) - 2f(x_i) + f(x_{i-1})}{(\Delta x)^2}
+\end{equation}
+and together they can be used to discretize the governing Euler equation in space.
+
+Taking a look at $p' = p'(x,y,t)$ first, which is the perturbed pressure field of the fluid flow, its governing equation can be written as
+\begin{equation} \label{eq:govpp}
+  \frac{\partial p'}{\partial t} + \mathbf{u}_0 \cdot \nabla p' = q'
+\end{equation}
+where $\mathbf{u}_0 = (u_0, v_0)$ is the unperturbed fluid flow velocity vector and
+\begin{equation*}
+  q' = \frac{Dp'}{Dt} \equiv \frac{\partial p'}{\partial t} + \mathbf{u}_0 \cdot \nabla p'
+\end{equation*}
+is the \emph{material derivative} of $p'$. Expanding the dot product and gradient, \eqref{eq:govpp} can be written as
+\begin{equation} \label{eq:govpp}
+\frac{\partial p'}{\partial t} = q' - u_0 \frac{\partial p'}{\partial x} - v_0 \frac{\partial p'}{\partial y}
+\end{equation}
+where we haved moved the $\mathbf{u}_0 \nabla p'$ term to the right hand side. Now we can discretize the spatial derivatives using \eqref{eq:firstD} to obtain
+\begin{equation} \label{eq:ppDisc}
+  \frac{dp'_{i,j}}{dt} = q'_{i,j} - u_0\frac{p'_{i+1,j} - p'_{i-1,j}}{2\Delta x} - v_0 \frac{p'_{i,j+1} - p'_{i,j-1}}{2\Delta y}.
+\end{equation}
+
+The corresponding governing equation for $q'$ is
+\begin{equation}
+  \frac{\partial q'}{\partial t} + \mathbf{u}_0 \cdot \nabla q' = c_0^2 \nabla^2 p'
+\end{equation}
+where $c_0^2$ is the unperturbed speed of sound in the fluid. Expanding the dot product and the Laplacian terms, we arrive at
+\begin{equation}
+  \frac{\partial q'}{\partial t} = c_0^2 \left( \frac{\partial^2 p'}{\partial x^2} + \frac{\partial^2 p'}{\partial y^2}\right) - u_0 \frac{\partial q'}{\partial x} - v_0 \frac{\partial q'}{\partial y}
+\end{equation}
+where again we have moved the $\mathbf{u}_0 \cdot \nabla q'$ term to the right hand side and which we can now discretize using \eqref{eq:firstD} and \eqref{eq:secondD} to obtain
+\begin{multline} \label{eq:qpDisc}
+  \frac{\partial q'_{i,j}}{\partial t} = c_0^2 \left( \frac{p'_{i+1,j} - 2p'_{i,j} + p'_{i-1,j}}{(\Delta x)^2} + \frac{p'_{i,j+1} - 2p'_{i,j} + p'_{i,j-1}}{\partial (\Delta y^2)} \right) \\
+  - u_0\frac{q'_{i+1,j} - q'_{i-1,j}}{2\Delta x} - v_0 \frac{q'_{i,j+1} - q'_{i,j-1}}{2\Delta y}.
+\end{multline}
+
+Equations \eqref{eq:ppDisc} and \eqref{eq:qpDisc} each provide us with a set of $(N+1)(M+1)$ ordinary differential equations (ODEs) that may be integrated numerically to obtain the values of $p'$ and $q'$ at each grid point as a function of time, but we also require appropriate boundary conditions. Let us look at the boundary conditions for $p'$ first. The left boundary condition reads $p = p_0$ at $x = 0$ but $p = p_0 + p'$ by definition so we must have that $p' = 0$ at $x = 0$ or
+\begin{equation}
+  p'_{0,j} = 0 \quad \mathrm{for \; all} \; j
+\end{equation}
+The right boundary condition reads $\displaystyle \frac{dp'}{dx'} = 0$ which we can discretize using \eqref{eq:firstD} to get
+\begin{equation}
+  \frac{p'_{N+1,j} - p'_{N,j}}{2\Delta x} = 0 \quad \mathrm{or} \quad p'_{N+1,j} = p'_{N,j} \quad \mathrm{for \; all} \; j
+\end{equation}
+The bottom ($y=0$) and top ($y=H$) boundary condition reads 
+\begin{equation}
+  \nabla p \cdot \mathbf{n} = -\rho \left( \frac{\partial^2 F}{\partial t^2} + 2u\frac{\partial^2 F}{\partial t \partial x} + u^2 \frac{\partial^2 F}{\partial^2 x} \right)
+\end{equation}
+where $F(x,t)$ describes the geometry for the lower and upper walls and $\mathbf{n}$ is the normal vector pointing into the flow field such that $\mathbf{n} = (F_x, -1)$ for the top wall and $\mathbf{n} = (-F_x, 1)$ for the bottom wall.
+
+Now taking a look at the boundary conditions for $q'$, the condition on the left wall reads $q' = 0$ at $x = 0$ which may be discretized as
+\begin{equation}
+q'_{0,j} = 0 \quad \mathrm{for \; all} \; j
+\end{equation}
+
+\end{document}
