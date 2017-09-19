@@ -27,10 +27,15 @@ for i=1:N+1
         pp(i,1) = pp(i,2); % dp'/dy = 0 at y=0 for x < L/4 and x > L/2.
     else
         % dp'/dx = (rho_0*u_0^2*Fxx + dp'/dy)/(dF/dx) at y=0 for L/4 < x < L/2.
-        Fx = (F(i+1) - F(i)) / (dx);
+        % Fx = (F(i+1) - F(i)) / (dx);
+        % Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
+        % ppy = (pp(i,2) - pp(i,1)) / dy;
+        % % TODO: Small Fx could be blowing up the solution!
+        % pp(i+1,1) = pp(i-1,1) + (rho_0*u_0^2*Fxx + ppy)/(2*dx*Fx);
+        
+        % dp'/dy = -rho_0*u_0^2*Fxx
         Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
-        ppy = (pp(i,2) - pp(i,1)) / dy;
-        pp(i+1,1) = pp(i-1,1) + (rho_0*u_0^2*Fxx + ppy)/(2*dx*Fx);
+        pp(i,2) = pp(i,1) - rho_0*u_0^2*Fxx*dy;
     end
 end
 
