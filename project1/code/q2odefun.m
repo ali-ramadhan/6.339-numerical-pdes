@@ -35,7 +35,7 @@ for i=1:N+1
         
         % dp'/dy = -rho_0*u_0^2*Fxx
         Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
-        pp(i,1) = pp(i,2) + rho_0*u_0^2*Fxx*dy;
+        pp(i,1) = pp(i,2) + rho_0*u_0^2*Fxx*2*dy;
     end
 end
 
