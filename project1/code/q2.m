@@ -1,5 +1,7 @@
 function [pp, x, y] = q2(dt, nstep, M, F, ppinitial, qpinitial)
 
+% Declare variables needed by q2odefun as global. Might be better practice
+% to pass them through an anonymous function.
 global N dx dy
 
 rho_0 = 1;
