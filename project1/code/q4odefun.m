@@ -21,24 +21,42 @@ for j=1:M+1
     qp(N+1,j) = qp(N,j); % dq'/dx 0 at x=L
 end
 
-for i=2:N+1
-    % TODO: Why start at i=2?
-    up = tan(theta)*pp(i-1,M+1)*dy - sec(theta)*pp(i,M)*dx;
-    down = tan(theta)*dy - sec(theta)*dx;
-    pp(i,M+1) = up/down;
-    
-    if i*dx < L/4 || i*dx > L/2
-        up = tan(theta)*pp(i-1,1)*dy - sec(theta)*pp(i,2)*dx;
-        down = tan(theta)*dy - sec(theta)*dx;
-        pp(i,1) = up/down;
-    else
-        Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
-        up = rho_0*u_0^2*Fxx*dx*dy + tan(theta)*pp(i,1)*dy ...
-            + sec(theta)*pp(i+1,2)*dx;
-        down = tan(theta)*dy + sec(theta)*dx;
-        pp(i,1) = up/down;
-    end
-end
+% for i=3:N+1
+%     % TODO: Why start at i=2?
+%     % up = tan(theta)*pp(i-1,M+1)*dy - sec(theta)*pp(i,M)*dx;
+%     % down = tan(theta)*dy - sec(theta)*dx;
+%     % pp(i,M+1) = up/down;
+%     
+%     if i*dx < L/4 || i*dx > L/2
+%         up = tan(theta)*pp(i-2,1)*dy - sec(theta)*pp(i,3)*dx;
+%         down = tan(theta)*dy - sec(theta)*dx;
+%         pp(i,1) = up/down;
+%     else
+%         Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
+%         up = rho_0*u_0^2*Fxx*dx*dy + tan(theta)*pp(i-1,1)*dy ...
+%             + sec(theta)*pp(i+2,2)*dx;
+%         down = tan(theta)*dy + sec(theta)*dx;
+%         pp(i,1) = up/down;
+%     end
+% end
+
+% Solve system of linear equations for the y=0 and y=H boundaries.
+A = - (3*sec(theta) / (2*dy)) * diag(ones(N+1,1)) ...
+    + (tan(theta) / (2*dx)) * diag(ones(N,1), -1) ...
+    - (tan(theta) / (2*dx)) * diag(ones(N,1), 1);
+bH = - sec(theta)*(4*pp(:,2) - pp(:,3)) / (2*dy);
+
+Fxx = [0; diff(F,2)/dx^2; 0];
+b0 = bH - rho_0*(u_0)^2*Fxx;
+
+% ppyH = A\bH;
+% pp(2:N,M+1) = ppyH(2:N);
+% ppy0 = A\b0;
+% pp(2:N,1) = ppy0(2:N);
+pp(:,M+1) = A\bH;
+pp(:,1) = A\b0;
+% pp(1,1) = 0; pp(N+1,1) = pp(N,1);
+% pp(1,M+1) = 0; pp(N+1,M+1) = pp(N,M+1);
 
 % Calculate time derivatives for p' and q' at every interior grid point.
 dppdt = zeros(N+1, M+1);
