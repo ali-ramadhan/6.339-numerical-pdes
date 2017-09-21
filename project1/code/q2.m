@@ -1,8 +1,5 @@
 function [pp, x, y] = q2(dt, nstep, M, F, ppinitial, qpinitial)
-
-% Declare variables needed by q2odefun as global. Might be better practice
-% to pass them through an anonymous function.
-global N dx dy
+global pp qp
 
 rho_0 = 1;
 c_0 = 1;
@@ -18,8 +15,6 @@ dy = H/M;
 % Convert F into a vector of size (N+1, 1) so I can index it with i along
 % with, e.g. pp(i,j).
 F = [zeros(N/4, 1); F; zeros(N/2, 1)];
-% fprintf('size(F,1) = %d\n', size(F,1));
-% fprintf('N = %d\n', N);
 
 % Initializing p' and q'.
 pp = ppinitial;
@@ -27,25 +22,25 @@ qp = qpinitial;
 
 % Using ode45.
 y0 = [reshape(pp, [(N+1)*(M+1), 1]); reshape(qp, [(N+1)*(M+1), 1])];
-[t, y] = ode45(@(t,y) q2odefun(t, y, M, F), [0 nstep*dt], y0, odeset('Stats', 'on'));
-pp = reshape(y(end, 1:(N+1)*(M+1)), [N+1, M+1]);
-qp = reshape(y(end, (N+1)*(M+1)+1:end), [N+1, M+1]);
+[t, y] = ode45(@(t,y) q2odefun(t, y, N, M, dx, dy, F), [0 nstep*dt], y0, odeset('Stats', 'on'));
+% pp = reshape(y(end, 1:(N+1)*(M+1)), [N+1, M+1]);
+% qp = reshape(y(end, (N+1)*(M+1)+1:end), [N+1, M+1]);
 
 fprintf('t=%f s to t=%f s\n', t(1), t(end));
 
 x = repmat(linspace(0, L, N+1), M+1, 1);
-yy = repmat(linspace(0, H, M+1)', 1, N+1);
+% y = repmat(linspace(0, H, M+1)', 1, N+1);
 
-for i = 1:5:size(y,1)
+yy = repmat(linspace(0, H, M+1)', 1, N+1);
+for i = 1:10:size(y,1)
     ppp = reshape(y(i, 1:(N+1)*(M+1)), [N+1, M+1]);
-    %surf(x,yy,ppp');
-    %shading interp;
-    %view(2);
-    %colorbar;
-    contourf(x,yy,ppp');
+    surf(x,yy,ppp');
+    shading interp;
+    view(2);
+    colorbar;
+    % contourf(x,yy,ppp');
     drawnow;
 end
 
 y = repmat(linspace(0, H, M+1)', 1, N+1);
-
 end

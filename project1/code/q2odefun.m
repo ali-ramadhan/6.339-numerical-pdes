@@ -1,5 +1,5 @@
-function dydt = q2odefun(t, y, M, F)
-global N dx dy
+function dydt = q2odefun(t, y, N, M, dx, dy, F)
+global pp qp
 
 rho_0 = 1;
 c_0 = 1;
@@ -9,7 +9,7 @@ H = 2;
 
 % Reshape y vector into p',q' matrices.
 pp = reshape(y(1:(N+1)*(M+1)), N+1, M+1);
-qp = reshape(y((N+1)*(M+1)+1:end), [N+1, M+1]);
+qp = reshape(y((N+1)*(M+1)+1:end), N+1, M+1);
 
 % Imposing boundary conditions at each wall.
 for j=1:M+1
@@ -35,8 +35,10 @@ for i=1:N+1
         
         % dp'/dy = -rho_0*u_0^2*Fxx
         Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
-        
-        % Multiply by 2*dy to continue using 
+
+        % Multiply by 2*dy to continue using central difference with
+        % second-order truncation error (but now essentially with a ghost
+        % point).
         pp(i,1) = pp(i,2) + rho_0*u_0^2*Fxx*2*dy;
     end
 end
@@ -54,5 +56,4 @@ for i=2:N
 end
 
 dydt = [reshape(dppdt, [(N+1)*(M+1), 1]); reshape(dqpdt, [(N+1)*(M+1), 1])];
-
 end
