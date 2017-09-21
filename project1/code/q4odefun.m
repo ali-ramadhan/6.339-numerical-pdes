@@ -41,22 +41,18 @@ end
 % end
 
 % Solve system of linear equations for the y=0 and y=H boundaries.
-A = - (3*sec(theta) / (2*dy)) * diag(ones(N+1,1)) ...
+A0 = - (3*sec(theta) / (2*dy)) * diag(ones(N+1,1)) ...
     + (tan(theta) / (2*dx)) * diag(ones(N,1), -1) ...
     - (tan(theta) / (2*dx)) * diag(ones(N,1), 1);
-bH = - sec(theta)*(4*pp(:,2) - pp(:,3)) / (2*dy);
-
 Fxx = [0; diff(F,2)/dx^2; 0];
-b0 = bH - rho_0*(u_0)^2*Fxx;
+b0 = - sec(theta)*(4*pp(:,2) - pp(:,3)) / (2*dy) - rho_0*(u_0)^2*Fxx;
+pp(:,1) = A0\b0;
 
-% ppyH = A\bH;
-% pp(2:N,M+1) = ppyH(2:N);
-% ppy0 = A\b0;
-% pp(2:N,1) = ppy0(2:N);
-pp(:,M+1) = A\bH;
-pp(:,1) = A\b0;
-% pp(1,1) = 0; pp(N+1,1) = pp(N,1);
-% pp(1,M+1) = 0; pp(N+1,M+1) = pp(N,M+1);
+AH = (3*sec(theta) / (2*dy)) * diag(ones(N+1,1)) ...
+    + (tan(theta) / (2*dx)) * diag(ones(N,1), -1) ...
+    - (tan(theta) / (2*dx)) * diag(ones(N,1), 1);
+bH = sec(theta)*(4*pp(:,M) - pp(:,M-1)) / (2*dy);
+pp(:,M+1) = AH\bH;
 
 % Calculate time derivatives for p' and q' at every interior grid point.
 dppdt = zeros(N+1, M+1);
