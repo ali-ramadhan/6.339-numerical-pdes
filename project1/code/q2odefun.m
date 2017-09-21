@@ -1,6 +1,6 @@
 function dydt = q2odefun(t, y, N, M, dx, dy, F)
-global pp qp
-
+% Redefining problem parameters here to avoid a massive argument list.
+% Note: all constants are unitless, or rather, non-dimensional.
 rho_0 = 1;
 c_0 = 1;
 u_0 = sqrt(2);
@@ -39,7 +39,7 @@ for i=1:N+1
         % Multiply by 2*dy to continue using central difference with
         % second-order truncation error (but now essentially with a ghost
         % point).
-        pp(i,1) = pp(i,2) + rho_0*u_0^2*Fxx*2*dy;
+        pp(i,1) = pp(i,2) + rho_0*u_0^2*Fxx*dy;
     end
 end
 

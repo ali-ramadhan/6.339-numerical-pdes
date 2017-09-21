@@ -1,6 +1,6 @@
 function [pp, x, y] = q2(dt, nstep, M, F, ppinitial, qpinitial)
-global pp qp
-
+% Defining problem parameters. Note: all constants are unitless, or rather,
+% non-dimensional.
 rho_0 = 1;
 c_0 = 1;
 u_0 = sqrt(2);
@@ -23,8 +23,8 @@ qp = qpinitial;
 % Using ode45.
 y0 = [reshape(pp, [(N+1)*(M+1), 1]); reshape(qp, [(N+1)*(M+1), 1])];
 [t, y] = ode45(@(t,y) q2odefun(t, y, N, M, dx, dy, F), [0 nstep*dt], y0, odeset('Stats', 'on'));
-% pp = reshape(y(end, 1:(N+1)*(M+1)), [N+1, M+1]);
-% qp = reshape(y(end, (N+1)*(M+1)+1:end), [N+1, M+1]);
+pp = reshape(y(end, 1:(N+1)*(M+1)), [N+1, M+1]);
+qp = reshape(y(end, (N+1)*(M+1)+1:end), [N+1, M+1]);
 
 fprintf('t=%f s to t=%f s\n', t(1), t(end));
 
