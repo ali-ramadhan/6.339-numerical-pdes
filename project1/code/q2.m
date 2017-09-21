@@ -21,10 +21,10 @@ pp = ppinitial;
 qp = qpinitial;
 
 % Using ode45.
-y0 = [reshape(pp, [(N+1)*(M+1), 1]); reshape(qp, [(N+1)*(M+1), 1])];
+y0 = [reshape(pp, (N+1)*(M+1), 1); reshape(qp, (N+1)*(M+1), 1)];
 [t, y] = ode45(@(t,y) q2odefun(t, y, N, M, dx, dy, F), [0 nstep*dt], y0, odeset('Stats', 'on'));
-pp = reshape(y(end, 1:(N+1)*(M+1)), [N+1, M+1]);
-qp = reshape(y(end, (N+1)*(M+1)+1:end), [N+1, M+1]);
+pp = reshape(y(end, 1:(N+1)*(M+1)), N+1, M+1);
+qp = reshape(y(end, (N+1)*(M+1)+1:end), N+1, M+1);
 
 fprintf('t=%f s to t=%f s\n', t(1), t(end));
 
@@ -33,7 +33,8 @@ x = repmat(linspace(0, L, N+1), M+1, 1);
 
 yy = repmat(linspace(0, H, M+1)', 1, N+1);
 for i = 1:10:size(y,1)
-    ppp = reshape(y(i, 1:(N+1)*(M+1)), [N+1, M+1]);
+    ppp = reshape(y(i, 1:(N+1)*(M+1)), N+1, M+1);
+    pp(N+1,:) = pp(N,:);    % dp'/dx = 0 at x=L
     surf(x,yy,ppp');
     shading interp;
     view(2);
