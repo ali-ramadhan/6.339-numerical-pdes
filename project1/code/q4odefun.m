@@ -1,12 +1,12 @@
-function dydt = q2odefun(t, y, N, M, dx, dy, F)
-global pp qp
-
+function dydt = q4odefun(t, y, N, M, dx, dy, F)
+% Redefining problem parameters here to avoid a massive argument list.
+% Note: all constants are unitless, or rather, non-dimensional.
 rho_0 = 1;
 c_0 = 1;
 u_0 = sqrt(2);
 L = 6;
 H = 2;
-theta = 0;
+theta = pi/4;
 
 % Reshape y vector into p',q' matrices.
 pp = reshape(y(1:(N+1)*(M+1)), N+1, M+1);
@@ -21,26 +21,22 @@ for j=1:M+1
     qp(N+1,j) = qp(N,j); % dq'/dx 0 at x=L
 end
 
-for i=1:N+1
-    pp(i,M+1) = pp(i,M); % dp'/dy = 0 at y=H
-
+for i=2:N+1
+    % TODO: Why start at i=2?
+    up = tan(theta)*pp(i-1,M+1)*dy - sec(theta)*pp(i,M)*dx;
+    down = tan(theta)*dy - sec(theta)*dx;
+    pp(i,M+1) = up/down;
+    
     if i*dx < L/4 || i*dx > L/2
-        pp(i,1) = pp(i,2); % dp'/dy = 0 at y=0 for x < L/4 and x > L/2.
+        up = tan(theta)*pp(i-1,1)*dy - sec(theta)*pp(i,2)*dx;
+        down = tan(theta)*dy - sec(theta)*dx;
+        pp(i,1) = up/down;
     else
-        % dp'/dx = (rho_0*u_0^2*Fxx + dp'/dy)/(dF/dx) at y=0 for L/4 < x < L/2.
-        % Fx = (F(i+1) - F(i)) / (dx);
-        % Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
-        % ppy = (pp(i,2) - pp(i,1)) / dy;
-        % % TODO: Small Fx could be blowing up the solution!
-        % pp(i+1,1) = pp(i-1,1) + (rho_0*u_0^2*Fxx + ppy)/(2*dx*Fx);
-        
-        % dp'/dy = -rho_0*u_0^2*Fxx
         Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
-
-        % Multiply by 2*dy to continue using central difference with
-        % second-order truncation error (but now essentially with a ghost
-        % point).
-        pp(i,1) = pp(i,2) + rho_0*u_0^2*Fxx*2*dy;
+        up = rho_0*u_0^2*Fxx*dx*dy + tan(theta)*pp(i,1)*dy ...
+            + sec(theta)*pp(i+1,2)*dx;
+        down = tan(theta)*dy + sec(theta)*dx;
+        pp(i,1) = up/down;
     end
 end
 
@@ -50,9 +46,16 @@ dqpdt = zeros(N+1, M+1);
 for i=2:N
     for j=2:M
         dppdt(i,j) = qp(i,j) - u_0 * (pp(i+1,j) - pp(i-1,j))/(2*dx);
-        dqpdt(i,j) = (c_0^2) * ((pp(i+1,j) - 2*pp(i,j) + pp(i-1,j)) / (dx^2)) ...
-                   + (c_0^2) * ((pp(i,j+1) - 2*pp(i,j) + pp(i,j-1)) / (dy^2)) ...
-                   - u_0 * ((qp(i+1,j) - qp(i-1,j)) / (2*dx));
+        
+        dqpdx = (qp(i+1,j) - qp(i-1,j)) / (2*dx);
+        dppdxx = (pp(i+1,j) - 2*pp(i,j) + pp(i-1,j)) / (dx^2);
+        dppdyy = (pp(i,j+1) - 2*pp(i,j) + pp(i,j-1)) / (dy^2);
+        dppdxy = (pp(i+1,j+1) - pp(i+1,j-1) - pp(i-1,j+1) ...
+            + pp(i-1,j-1)) / (4*dx*dy);
+        
+        dqpdt(i,j) = (c_0^2)*(sec(theta)^2)*(dppdxx + dppdyy) ...
+                   - (c_0^2)*sec(theta)*tan(theta)*dppdxy ...
+                   - u_0*dqpdx;
     end
 end
 
