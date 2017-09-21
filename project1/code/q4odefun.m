@@ -13,34 +13,12 @@ pp = reshape(y(1:(N+1)*(M+1)), N+1, M+1);
 qp = reshape(y((N+1)*(M+1)+1:end), N+1, M+1);
 
 % Imposing boundary conditions at each wall.
-for j=1:M+1
-    pp(1,j) = 0; % p=p_0 (p'=0) at x=0
-    pp(N+1,j) = pp(N,j); % dp'/dx = 0 at x=L
+pp(1,:) = zeros(1,M+1); % p=p_0 (p'=0) at x=0
+pp(N+1,:) = pp(N,:);    % dp'/dx = 0 at x=L
+qp(1,:) = zeros(1,M+1); % q'=0 at x=0
+qp(N+1,:) = qp(N,:);    % dq'/dx 0 at x=L
 
-    qp(1,j) = 0; % q'=0 at x=0
-    qp(N+1,j) = qp(N,j); % dq'/dx 0 at x=L
-end
-
-% for i=3:N+1
-%     % TODO: Why start at i=2?
-%     % up = tan(theta)*pp(i-1,M+1)*dy - sec(theta)*pp(i,M)*dx;
-%     % down = tan(theta)*dy - sec(theta)*dx;
-%     % pp(i,M+1) = up/down;
-%     
-%     if i*dx < L/4 || i*dx > L/2
-%         up = tan(theta)*pp(i-2,1)*dy - sec(theta)*pp(i,3)*dx;
-%         down = tan(theta)*dy - sec(theta)*dx;
-%         pp(i,1) = up/down;
-%     else
-%         Fxx = (F(i+1) - 2*F(i) + F(i-1))/(dx^2);
-%         up = rho_0*u_0^2*Fxx*dx*dy + tan(theta)*pp(i-1,1)*dy ...
-%             + sec(theta)*pp(i+2,2)*dx;
-%         down = tan(theta)*dy + sec(theta)*dx;
-%         pp(i,1) = up/down;
-%     end
-% end
-
-% Solve system of linear equations for the y=0 and y=H boundaries.
+% Solve system of linear equations for the y=0 and y=H boundary conditions.
 A0 = - (3*sec(theta) / (2*dy)) * diag(ones(N+1,1)) ...
     + (tan(theta) / (2*dx)) * diag(ones(N,1), -1) ...
     - (tan(theta) / (2*dx)) * diag(ones(N,1), 1);
