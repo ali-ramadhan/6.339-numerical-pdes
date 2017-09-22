@@ -34,13 +34,20 @@ x = repmat(linspace(0, L, N+1), M+1, 1);
 % y = repmat(linspace(0, H, M+1)', 1, N+1);
 
 yy = repmat(linspace(0, H, M+1)', 1, N+1);
-for i = 1:10:size(y,1)
-    ppp = reshape(y(i, 1:(N+1)*(M+1)), [N+1, M+1]);
-    % surf(x,yy,ppp');
+for i = 1:25:size(y,1)
+    ppp = reshape(y(i, 1:(N+1)*(M+1)), N+1, M+1);
+    qpp = reshape(y(i, (N+1)*(M+1)+1:end), N+1, M+1);
+    ppp(:,1) = ppp(:,2);
+    qpp(:,1) = qpp(:,2);
+    % surf(x,yy,qpp');
     % shading interp;
     % view(2);
-    % colorbar;
+    subplot(1,2,1);
     contourf(x,yy,ppp');
+    colorbar;
+    subplot(1,2,2);
+    contourf(x,yy,qpp');
+    colorbar;
     drawnow;
 end
 

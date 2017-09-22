@@ -45,12 +45,12 @@ for i=2:N
     end
 end
 
-xi = repmat(linspace(0, L, N+1), M+1, 1);
-yi = repmat(linspace(0, H, M+1)', 1, N+1);
-surf(xi,yi,pp');
-shading interp;
-view(2);
-drawnow;
+% xi = repmat(linspace(0, L, N+1), M+1, 1);
+% yi = repmat(linspace(0, H, M+1)', 1, N+1);
+% surf(xi,yi,pp');
+% shading interp;
+% view(2);
+% drawnow;
 
 dydt = [reshape(dppdt, (N+1)*(M+1), 1); reshape(dqpdt, (N+1)*(M+1), 1)];
 end
