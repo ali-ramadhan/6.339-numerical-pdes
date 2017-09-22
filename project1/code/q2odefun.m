@@ -17,9 +17,9 @@ pp(N+1,:) = pp(N,:);    % dp'/dx = 0 at x=L
 qp(1,:) = zeros(1,M+1); % q'=0 at x=0
 qp(N+1,:) = qp(N,:);    % dq'/dx 0 at x=L
 
-for i=1:N+1
-    pp(i,M+1) = pp(i,M); % dp'/dy = 0 at y=H
+pp(:,M+1) = pp(:,M); % dp'/dy = 0 at y=H
 
+for i=1:N+1
     if i*dx < L/4 || i*dx > L/2
         pp(i,1) = pp(i,2); % dp'/dy = 0 at y=0 for x < L/4 and x > L/2.
     else     
@@ -50,6 +50,7 @@ end
 % surf(xi,yi,pp');
 % shading interp;
 % view(2);
+% contourf(xi,yi,pp');
 % drawnow;
 
 dydt = [reshape(dppdt, (N+1)*(M+1), 1); reshape(dqpdt, (N+1)*(M+1), 1)];
