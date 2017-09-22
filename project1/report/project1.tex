@@ -8,10 +8,18 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{siunitx}
+\usepackage{cancel}
 
 \usepackage{graphicx}
 \usepackage{float}
-\usepackage{tcolorbox}
+\usepackage{empheq}
+\usepackage[most]{tcolorbox}
+
+\newtcbox{\mymath}[1][]{%
+  nobeforeafter, math upper, tcbox raise base,
+  enhanced, colframe=black!30!black,
+  colback=yellow!30, boxrule=1pt,
+  #1}
 
 % Hyperlinks with decent looking default colors.
 \usepackage{hyperref}
@@ -38,8 +46,8 @@
 \cfoot{\thepage}
 
 \title{\spacedlowsmallcaps{6.339: Numerical Methods for Partial Differential Equations}\\ \spacedlowsmallcaps{Project one: Finite Difference Methods}}
-\author{Ali Ramadhan (\texttt{alir@mit.edu})}
-\date{\today}
+\author{Ali Ramadhan$^\text{†}$ (\texttt{alir@mit.edu})}
+\date{\textit{$^\text{†}$Department of Earth, Atmospheric, and Planetary Sciences}}
 
 \renewcommand\thesection{\Alph{section}}
 
@@ -51,15 +59,28 @@ In this project, we will utilize finite difference methods to solve the two-dime
 
 The Euler equations mathematically represent the conservation of mass and momentum for a fluid and can be used to describe the flow of an inviscid fluid. They can be written as
 
+\begin{subequations}
 \begin{align} 
 \frac{D\mathbf{u}}{Dt} = - \nabla w + \mathbf{g} \\
 \nabla\cdot\mathbf{u} = 0
 \end{align}
-
+\end{subequations}
 
 \begin{tcolorbox}
   \textit{Question 1(a)---Derive the governing boundary condition for $p'$ on boundary. The error in the boundary condition you derived should be the same as that in the linearized Euler equation.}
 \end{tcolorbox}
+
+The bottom ($y=0$) and top ($y=H$) boundary conditions read
+\begin{equation} \label{eq:yBC}
+\nabla p \cdot \mathbf{n} = -\rho \left( \frac{\partial^2 F}{\partial t^2} + 2u\frac{\partial^2 F}{\partial t \partial x} + u^2 \frac{\partial^2 F}{\partial^2 x} \right)
+\end{equation}
+where $F(x,t)$ describes the geometry for the lower and upper walls and $\mathbf{n}$ is the normal vector pointing into the flow field such that $\mathbf{n} = (F_x, -1)$ for the top wall and $\mathbf{n} = (-F_x, 1)$ for the bottom wall.
+
+Expanding the gradient term in \eqref{eq:yBC} we obtain 
+\begin{equation}
+  \nabla p = \nabla(p_0 + p') = \cancelto{0}{\nabla p_0} + \nabla p' = \nabla p'
+\end{equation}
+where $\nabla p_0 = 0$ as $p_0$ represents the unperturbed pressure field and thus does not vary in time or space for our problem.
 
 \begin{tcolorbox}
   \textit{Question 1(b)---Derive a numerical scheme for the governing equation, using second-order finite-difference in space.}
@@ -72,7 +93,7 @@ while the second derivative can be approximated as
 \begin{equation} \label{eq:secondD}
   \frac{\partial^2 f(x_i)}{\partial x^2} \approx \frac{f(x_{i+1}) - 2f(x_i) + f(x_{i-1})}{(\Delta x)^2}
 \end{equation}
-and together they can be used to discretize the governing Euler equation in space.
+and together they can be used to discretize the governing Euler equations in space.
 
 Taking a look at $p' = p'(x,y,t)$ first, which is the perturbed pressure field of the fluid flow, its governing equation can be written as
 \begin{equation} \label{eq:govpp}
@@ -87,9 +108,9 @@ is the \emph{material derivative} of $p'$. Expanding the dot product and gradien
 \frac{\partial p'}{\partial t} = q' - u_0 \frac{\partial p'}{\partial x} - v_0 \frac{\partial p'}{\partial y}
 \end{equation}
 where we haved moved the $\mathbf{u}_0 \nabla p'$ term to the right hand side. Now we can discretize the spatial derivatives using \eqref{eq:firstD} to obtain
-\begin{equation} \label{eq:ppDisc}
+\begin{empheq}[box=\mymath]{equation} \label{eq:ppDisc}
   \frac{dp'_{i,j}}{dt} = q'_{i,j} - u_0\frac{p'_{i+1,j} - p'_{i-1,j}}{2\Delta x} - v_0 \frac{p'_{i,j+1} - p'_{i,j-1}}{2\Delta y}.
-\end{equation}
+\end{empheq}
 
 The corresponding governing equation for $q'$ is
 \begin{equation}
@@ -100,19 +121,24 @@ where $c_0^2$ is the unperturbed speed of sound in the fluid. Expanding the dot 
   \frac{\partial q'}{\partial t} = c_0^2 \left( \frac{\partial^2 p'}{\partial x^2} + \frac{\partial^2 p'}{\partial y^2}\right) - u_0 \frac{\partial q'}{\partial x} - v_0 \frac{\partial q'}{\partial y}
 \end{equation}
 where again we have moved the $\mathbf{u}_0 \cdot \nabla q'$ term to the right hand side and which we can now discretize using \eqref{eq:firstD} and \eqref{eq:secondD} to obtain
-\begin{multline} \label{eq:qpDisc}
-  \frac{\partial q'_{i,j}}{\partial t} = c_0^2 \left( \frac{p'_{i+1,j} - 2p'_{i,j} + p'_{i-1,j}}{(\Delta x)^2} + \frac{p'_{i,j+1} - 2p'_{i,j} + p'_{i,j-1}}{\partial (\Delta y^2)} \right) \\
+\begin{empheq}[box=\mymath]{multline} \label{eq:qpDisc}
+  \frac{\partial q'_{i,j}}{\partial t} = c_0^2 \left( \frac{p'_{i+1,j} - 2p'_{i,j} + p'_{i-1,j}}{(\Delta x)^2} + \frac{p'_{i,j+1} - 2p'_{i,j} + p'_{i,j-1}}{(\Delta y^2)} \right) \\
   - u_0\frac{q'_{i+1,j} - q'_{i-1,j}}{2\Delta x} - v_0 \frac{q'_{i,j+1} - q'_{i,j-1}}{2\Delta y}.
-\end{multline}
+\end{empheq}
 
 Equations \eqref{eq:ppDisc} and \eqref{eq:qpDisc} each provide us with a set of $(N+1)(M+1)$ ordinary differential equations (ODEs) that may be integrated numerically to obtain the values of $p'$ and $q'$ at each grid point as a function of time, but we also require appropriate boundary conditions. Let us look at the boundary conditions for $p'$ first. The left boundary condition reads $p = p_0$ at $x = 0$ but $p = p_0 + p'$ by definition so we must have that $p' = 0$ at $x = 0$ or
-\begin{equation}
+\begin{empheq}[box=\mymath]{equation}
   p'_{0,j} = 0 \quad \mathrm{for \; all} \; j
-\end{equation}
+\end{empheq}
 The right boundary condition reads $\displaystyle \frac{dp'}{dx'} = 0$ which we can discretize using \eqref{eq:firstD} to get
 \begin{equation}
-  \frac{p'_{N+1,j} - p'_{N,j}}{2\Delta x} = 0 \quad \mathrm{or} \quad p'_{N+1,j} = p'_{N,j} \quad \mathrm{for \; all} \; j
+  \frac{p'_{N+1,j} - p'_{N,j}}{2\Delta x} = 0
 \end{equation}
+or rather, that the boundary grid points must equal the ones to their left,
+\begin{empheq}[box=\mymath]{equation}
+   p'_{N+1,j} = p'_{N,j} \quad \mathrm{for \; all} \; j
+\end{empheq}
+
 The bottom ($y=0$) and top ($y=H$) boundary condition reads 
 \begin{equation}
   \nabla p \cdot \mathbf{n} = -\rho \left( \frac{\partial^2 F}{\partial t^2} + 2u\frac{\partial^2 F}{\partial t \partial x} + u^2 \frac{\partial^2 F}{\partial^2 x} \right)
@@ -120,8 +146,53 @@ The bottom ($y=0$) and top ($y=H$) boundary condition reads
 where $F(x,t)$ describes the geometry for the lower and upper walls and $\mathbf{n}$ is the normal vector pointing into the flow field such that $\mathbf{n} = (F_x, -1)$ for the top wall and $\mathbf{n} = (-F_x, 1)$ for the bottom wall.
 
 Now taking a look at the boundary conditions for $q'$, the condition on the left wall reads $q' = 0$ at $x = 0$ which may be discretized as
-\begin{equation}
-q'_{0,j} = 0 \quad \mathrm{for \; all} \; j
-\end{equation}
+\begin{empheq}[box=\mymath]{equation}
+  q'_{0,j} = 0 \quad \mathrm{for \; all} \; j
+\end{empheq}
+
+
+\begin{tcolorbox}
+  \textit{Question 2(a)---On a bump described by function:}
+  \begin{equation*}
+    F(x) = 0.01 \left\{ 1 - \cos \left[ \frac{8\pi}{L} \left( x - \frac{L}{4} \right) \right] \right\}^2
+  \end{equation*}
+  \textit{Plot the contour for $p'$ at time $t=2$ in your report (no figure
+  generation in submitted code). Include the color-bar in the figure.}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+  \textit{Question 3(a)---Estimate what the twist angle $\theta$ should be, so that the mesh aligns with the features of the solution.}
+\end{tcolorbox}
+
+\begin{tcolorbox}
+  \textit{Question 3(b)---Derive the governing equation on this new mesh.}
+\end{tcolorbox}
+To do so we will make a coordinate transformation from Cartesian coordinates $(x,y)$ to the oblique coordinate system, which we will denote by $(\tilde{x}, \tilde{y})$. The transformation is given by
+\begin{subequations}
+\begin{align}
+  \tilde{x} &= x - y\tan\theta \\
+  \tilde{y} &= y\sec\theta
+\end{align}
+\end{subequations}
+which will transform the differential operators according the chain rule,
+\begin{align*}
+  \frac{\partial f}{\partial x} &= \frac{\partial f}{\partial \tilde{x}} \frac{\partial \tilde{x}}{\partial x}
+  + \frac{\partial f}{\partial \tilde{y}} \frac{\partial \tilde{y}}{\partial x} = \frac{\partial f}{\partial \tilde{x}} \\
+  \frac{\partial f}{\partial y} &= \frac{\partial f}{\partial \tilde{x}} \frac{\partial \tilde{x}}{\partial y}
+  + \frac{\partial f}{\partial \tilde{y}} \frac{\partial \tilde{y}}{\partial y} = -\tan\theta\frac{\partial f}{\partial \tilde{x}} + \sec\theta \frac{\partial f}{\partial \tilde{y}}
+\end{align*}
+so that they can be substituted by differential operators with respect to the oblique coordinate system
+\begin{subequations}
+\begin{align}
+  \frac{\partial}{\partial x} &\rightarrow \frac{\partial}{\partial \tilde{x}} \\
+  \frac{\partial}{\partial y} &\rightarrow -\tan\theta\frac{\partial}{\partial \tilde{x}} + \sec\theta\frac{\partial}{\partial \tilde{y}}
+\end{align}
+\end{subequations}
+
+\begin{tcolorbox}
+  \textit{Question 3(c)---Derive a numerical scheme for the governing equation, using second-order finite-difference in space.}
+\end{tcolorbox}
+
+Same as question 2.
 
 \end{document}
