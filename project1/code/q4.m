@@ -12,7 +12,7 @@ N = 4*(size(F,1)-1); % From the fact that F is of size (N/4 + 1, 1).
 % I call them dx and dy but I really mean dx^tilde and dy^tilde. I just
 % don't want to keep writing dx_tilde and dy_tilde.
 dx = L/N;
-dy = H/M;
+dy = H*sec(theta)/M;
 
 % Convert F into a vector of size (N+1, 1) so I can index it with i along
 % with, e.g. pp(i,j).
