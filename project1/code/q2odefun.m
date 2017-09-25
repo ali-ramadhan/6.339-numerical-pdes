@@ -1,4 +1,6 @@
 function dydt = q2odefun(t, y, N, M, dx, dy, F)
+global pp qp
+
 % Redefining problem parameters here to avoid a massive argument list.
 % Note: all constants are unitless, or rather, non-dimensional.
 rho_0 = 1;
@@ -36,7 +38,9 @@ end
 % Calculate time derivatives for p' and q' at every interior grid point.
 dppdt = zeros(N+1, M+1);
 dqpdt = zeros(N+1, M+1);
+% dppdt(1,:) = qp(1,:) - u_0 * [diff(pp(1,:)) 0]/dx;
 for i=2:N
+    % dppdt(i,1) = qp(i,1) - u_0 * (pp(i+1,1) - pp(i-1,1))/(2*dx);
     for j=2:M
         dppdt(i,j) = qp(i,j) - u_0 * (pp(i+1,j) - pp(i-1,j))/(2*dx);
         dqpdt(i,j) = (c_0^2) * ((pp(i+1,j) - 2*pp(i,j) + pp(i-1,j)) / (dx^2)) ...
