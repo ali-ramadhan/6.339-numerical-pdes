@@ -1,12 +1,14 @@
 function dydt = q4odefun(t, y, N, M, dx, dy, F)
+global pp qp
+
 % Redefining problem parameters here to avoid a massive argument list.
 % Note: all constants are unitless, or rather, non-dimensional.
+theta = pi/4;
 rho_0 = 1;
 c_0 = 1;
 u_0 = sqrt(2);
 L = 6;
-H = 2;
-theta = pi/4;
+H = 2*sec(theta);
 
 % Reshape y vector into p',q' matrices.
 pp = reshape(y(1:(N+1)*(M+1)), N+1, M+1);
