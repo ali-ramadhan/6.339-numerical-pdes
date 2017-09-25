@@ -78,7 +78,7 @@ and the second-order mixed derivative operator assuming that $f$ is now a multiv
 \begin{equation} \label{eq:mixedD}
 \frac{\partial^2 f_{i,j}}{\partial x \partial y} = \frac{f_{i+1,j+1} - f_{i+1,j-1} - f_{i-1,j+1} + f_{i-1,j-1}}{4\Delta x \Delta y} + \mathcal{O}(\Delta x^2, \Delta y^2)
 \end{equation}
-where we have introduced the shorthand notation $f(x_i,y_j) \equiv f_{i,j}$ for brevity. We will continue to use this notation throughout the report. \\
+where we have introduced the shorthand notation $f(x_i,y_j) \equiv f_{i,j}$ for brevity. We will continue to use this notation throughout the report. The last three finite difference operators represented by equations \eqref{eq:firstDforward}, \eqref{eq:firstDbackward}, and \eqref{eq:mixedD} were not derived in class and so I have derived them in the appendix at the end of this report. \\
 
 \begin{tcolorbox}
   \textit{Question 1(a)---Derive the governing boundary condition for $p'$ on boundary. The error in the boundary condition you derived should be the same as that in the linearized Euler equation.}
@@ -146,7 +146,7 @@ where again we have moved the $\mathbf{u}_0 \cdot \nabla q'$ term to the right h
 \end{empheq}
 
 Equations \eqref{eq:ppDisc} and \eqref{eq:qpDisc} each provide us with a set of $(N+1)(M+1)$ ordinary differential equations (ODEs) that may be integrated numerically to obtain the values of $p'$ and $q'$ at each grid point as a function of time, but we also require appropriate boundary conditions. Let us look at the boundary conditions for $p'$ first. The left boundary condition reads $p = p_0$ at $x = 0$ but $p = p_0 + p'$ by definition so we must have that $p' = 0$ at $x = 0$ or
-\begin{empheq}[box=\mymath]{equation}
+\begin{empheq}[box=\mymath]{equation} \label{eq:sameBC1}
   p'_{0,j} = 0 \quad \mathrm{for \; all} \; j
 \end{empheq}
 The right boundary condition reads $\displaystyle \frac{dp'}{dx'} = 0$ which we can discretize using \eqref{eq:firstD} to get
@@ -154,7 +154,7 @@ The right boundary condition reads $\displaystyle \frac{dp'}{dx'} = 0$ which we 
   \frac{p'_{N+1,j} - p'_{N,j}}{2\Delta x} = 0
 \end{equation}
 or rather, that the boundary grid points must equal the ones to their left,
-\begin{empheq}[box=\mymath]{equation}
+\begin{empheq}[box=\mymath]{equation} \label{eq:sameBC2}
    p'_{N+1,j} = p'_{N,j} \quad \mathrm{for \; all} \; j
 \end{empheq}
 
@@ -180,11 +180,11 @@ p'_{i,M+1} = p'_{i,M} \quad \mathrm{for \; all} \; i
 \end{empheq}
 
 Now taking a look at the boundary conditions for $q'$, the condition on the left wall reads $q' = 0$ at $x = 0$ which may be easily discretized as
-\begin{empheq}[box=\mymath]{equation}
+\begin{empheq}[box=\mymath]{equation} \label{eq:sameBC3}
   q'_{0,j} = 0 \quad \mathrm{for \; all} \; j
 \end{empheq}
 while the condition for $q'$ on the right wall ($x=L$) reads $\displaystyle \frac{dq'}{dx'} = 0$ which can be easily discretized just like its $p'$ conterpart to obtain
-\begin{empheq}[box=\mymath]{equation}
+\begin{empheq}[box=\mymath]{equation} \label{eq:sameBC4}
 q'_{N+1,j} = q'_{N,j} \quad \mathrm{for \; all} \; j
 \end{empheq} \\
 
@@ -292,7 +292,7 @@ A similar process for the $\tilde{y}=0$ boundary condition, except for the use o
 = - \sec\theta \frac{4p'_{i,2} - p'_{i,3}}{2\Delta\tilde{y}}
 - \rho_0 u_0^2 \frac{F_{i+1} - 2F_i + F_{i-1}}{(\Delta\tilde{x})^2}
 \end{empheq}
-both of which may be cast as a matrix equation of the form $A\mathbf{x} = \mathbf{b}$ and easily solved in MATLAB due to their relatively small size. \\
+both of which may be cast as a matrix equation of the form $A\mathbf{x} = \mathbf{b}$ and easily solved in MATLAB due to their relatively small size. The other four boundary conditions for $p'$ and $q'$ on the left and right walls, represented by equations \eqref{eq:sameBC1}, \eqref{eq:sameBC2}, \eqref{eq:sameBC3}, and \eqref{eq:sameBC4}, remain the same as $\tilde{x}=0$ $\tilde{x}=L$ correspond to $x=0$ and $x=L$ respectively so they can be reused. \\
 
 \begin{tcolorbox}
   \textit{Question 4---Same as question 2.}
@@ -305,5 +305,80 @@ Again taking the yellow boxed equations from question (3b) representing the time
   \caption{The perturbed pressure field $p'(\tilde{x},\tilde{y},t)$ at $t=2$. A mesh size of $N=400$ and $M=120$ was used. Note that the vertical domain is now $0 \le \tilde{y} \le H\sec\theta$ so that the top boundary corresponds to $y=H$.}
   \label{fig:pp_q4_contourf}
 \end{figure}
+
+\section*{Appendix: derivation of finite difference operators}
+Let us first derive the second-order forward and backward finite difference operators for the first derivative which we gave in equations \eqref{eq:firstDforward} and \eqref{eq:firstDbackward}. We will take the same approach we took in class and attempt to find the value of the constants $a$, $b$, and $c$ that minimize
+\begin{displaymath}
+  af_i + bf_{i\pm 1} + cf_{i\pm 2} - \frac{df(x_i)}{dx}
+\end{displaymath}
+where the $+$ branch corresponds to the forward operator and the $-$ branch to the backward operator. Expanding $f_{i\pm 1}$ and $f_{i\pm 2}$ as Taylor series about the point $x_i$ we obtain
+\begin{multline*}
+af_i
++ b\left( f_i \pm \Delta x \frac{df_i}{dx} + \frac{(\Delta x)^2}{2} \frac{d^2f_i}{dx^2} + \mathcal{O}(\Delta x)^3 \right) \\
++ c\left( f_i \pm 2\Delta x \frac{df_i}{dx} + \frac{(2\Delta x)^2}{2} \frac{d^2f_i}{dx^2} + \mathcal{O}(\Delta x)^3 \right) - \frac{df(x_i)}{dx} \\
+= (a+b+c)f_i + \left( a \pm b \pm 2c - \frac{1}{\Delta x} \right) \Delta x \frac{df_i}{dx} + \left( \frac{b}{2} + 2c \right) (\Delta x)^2 \frac{d^2f_i}{dx^2} + \mathcal{O}(\Delta x)^3
+\end{multline*}
+which is minimized when $a+b+c=0$, $a \pm b \pm 2c = 1/\Delta x$, and $b/2 + 2c = 0$. Solving the $+$ branch gives us the forward operator with $a=-3/2\Delta x$, $b=4/2\Delta x$, and $c=-1/2\Delta x$,
+\begin{equation}
+\frac{df_i}{dx} = \frac{-3f_i + 4f_{i+1} - f_{i+2}}{2\Delta x} + \mathcal{O}(\Delta x)^2
+\end{equation}
+while solving the $-$ branch gives us the backward operator with $a=3/2\Delta x$, $b=-4/2\Delta x$, and $c=1/2\Delta x$
+\begin{equation}
+\frac{df_i}{dx} = \frac{3f_{i} - 4f_{i-1} + f_{i-2}}{2\Delta x} + \mathcal{O}(\Delta x)^2
+\end{equation}
+
+Repeating this process for the mixed derivative but using a 4-point stencil we wish to minimize
+\begin{displaymath}
+  af_{i+1,j+1} + bf_{i+1,j-1} + cf_{i-1,j+1} + d_{i-1,j-1} - \frac{f_{i,j}}{\partial x \partial y}
+\end{displaymath}
+and after expanding each term as a Taylor series about the point $(x_i, y_j)$ we obtain
+\begin{multline*}
+a \left(
+  f_{i,j}
+  + \Delta x \frac{\partial f}{\Delta x}
+  + \Delta y \frac{\partial f}{\Delta y}
+  + \frac{(\Delta x)^2}{2} \frac{\partial^2 f}{\Delta x^2}
+  + \frac{(\Delta y)^2}{2} \frac{\partial^2 f}{\Delta y^2}
+  + \Delta x \Delta y \frac{\partial^2 f}{\partial x \partial y}
+  \right) \\
++ b \left(
+f_{i,j}
++ \Delta x \frac{\partial f}{\Delta x}
+- \Delta y \frac{\partial f}{\Delta y}
++ \frac{(\Delta x)^2}{2} \frac{\partial^2 f}{\Delta x^2}
++ \frac{(\Delta y)^2}{2} \frac{\partial^2 f}{\Delta y^2}
+- \Delta x \Delta y \frac{\partial^2 f}{\partial x \partial y}
+\right) \\
++ c \left(
+f_{i,j}
+- \Delta x \frac{\partial f}{\Delta x}
++ \Delta y \frac{\partial f}{\Delta y}
++ \frac{(\Delta x)^2}{2} \frac{\partial^2 f}{\Delta x^2}
++ \frac{(\Delta y)^2}{2} \frac{\partial^2 f}{\Delta y^2}
+- \Delta x \Delta y \frac{\partial^2 f}{\partial x \partial y}
+\right) \\
++ d \left(
+f_{i,j}
+- \Delta x \frac{\partial f}{\Delta x}
+- \Delta y \frac{\partial f}{\Delta y}
++ \frac{(\Delta x)^2}{2} \frac{\partial^2 f}{\Delta x^2}
++ \frac{(\Delta y)^2}{2} \frac{\partial^2 f}{\Delta y^2}
++ \Delta x \Delta y \frac{\partial^2 f}{\partial x \partial y}
+\right) \\
++ \mathcal{O}(\Delta x^3, \Delta y^3) - \frac{\partial^2 f}{\partial x \partial y}
+\end{multline*}
+where $f \equiv f_{i,j}$ in the derivatives for brevity, which can be factored as
+\begin{multline*}
+(a + b + c + d)f_{i,j}
+  + (a + b - c - d) \Delta x \frac{\partial f}{\Delta x}
+  + (a - b + c - d) \Delta y \frac{\partial f}{\Delta y} \\
+  + (a + b + c + d) \frac{(\Delta x)^2}{2} \frac{\partial^2 f}{\Delta x^2}
+  + (a + b + c + d) \frac{(\Delta y)^2}{2} \frac{\partial^2 f}{\Delta y^2} \\
+  + \left(a - b - c + d - \frac{1}{\Delta x \Delta y} \right) \Delta x \Delta y \frac{\partial^2 f}{\partial x \partial y} + \mathcal{O}(\Delta x^3, \Delta y^3)
+\end{multline*}
+and is minimized when $a+b+c+d=0$, $a+b-c-d=0$, $a-b+c-d=0$, and $a-b-c+d=1/\Delta x \Delta y$. Solving this system gives us $a = d = 1/4\Delta x \Delta y$ and $b = c = -1/4\Delta x \Delta y$ and the second-order operator for the mixed second derivative,
+\begin{equation}
+\frac{\partial^2 f_{i,j}}{\partial x \partial y} = \frac{f_{i+1,j+1} - f_{i+1,j-1} - f_{i-1,j+1} + f_{i-1,j-1}}{4\Delta x \Delta y} + \mathcal{O}(\Delta x^2, \Delta y^2)
+\end{equation}
 
 \end{document}
