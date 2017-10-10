@@ -35,7 +35,7 @@ function F = F(rho_L, rho_R)
 end
 
 % Numerical scheme parameters
-N = 500;
+N = 500; % Keep even so we can have a middle cell N/2 for the accident.
 x = linspace(0,x_max,N+1);
 dx = [x(2:end) - x(1:end-1), x_max/N];
 dt = 0.01;
@@ -52,7 +52,6 @@ rho_xt = zeros(N+1, n_step+1);
 rho_xt(:,1) = rho_0;
 
 for i=1:n_step
-    % rho = zeros(N+1,1);
     rho(1) = rho_0(1); % Impose left BC: rho(0,t) = rho_0.
     
     F_imh = zeros(N+1,1); % F_{i-1/2}
@@ -71,7 +70,7 @@ for i=1:n_step
     
     % First-order finite volume scheme. Time integration is done using a
     % first-order forward difference Euler method.
-    rho = rho - (dt./dx)' .* (F_iph - F_imh);
+    rho = rho - (dt./dx)' .* (F_iph - F_imh);  
     
     rho_xt(:,i+1) = rho;
 end
