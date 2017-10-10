@@ -47,7 +47,7 @@ t = linspace(0,n_step*dt,n_step+1);
 rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
 rho = rho_0;
 
-% We will store rho(x,t) for all cell centers x_i and 
+% We will store rho(x,t) for all cell centers x_i and time steps t_n.
 rho_xt = zeros(N+1, n_step+1);
 rho_xt(:,1) = rho_0;
 

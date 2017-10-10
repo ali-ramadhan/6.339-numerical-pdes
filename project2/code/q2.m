@@ -43,36 +43,24 @@ function F = F(rho_L, rho_R)
     end
 end
 
-% initial condition
+% Initial condition setup
 % rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
 rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
 rho = rho_0;
 
-% We will store rho(x,t) for all cell centers x_i and 
+% We will store rho(x,t) for all cell centers x_i and time steps t_n.
 rho_xt = zeros(N+1, n_step+1);
 rho_xt(:,1) = rho_0;
 
-function drhodt = q2odefun(t, rho, dx)
-    rho(1) = 0.8; % Impose left BC: rho(0,t) = rho_0.
+% Derivative of rho for ode45.
+function drhodt = q2odefun(t, rho, rho_0, dx)
+    rho(1) = rho_0(1); % Impose left BC: rho(0,t) = rho_0.
     
-    plot(x,rho);
-    title(t);
-    xlim([0,x_max]);
-    ylim([0,1.1*rho_max]);
-    drawnow;
-    
-    % Add ghost points
-    % rho = [rho(1); rho; rho(end)];
-    
-    F_imh = zeros(N+3,1); % F_{i-1/2}
-    F_iph = zeros(N+3,1); % F_{i+1/2}
-%     k1 = zeros(N+1,1);
-%     k2 = zeros(N+1,1);
-%     k3 = zeros(N+1,1);
-%     k4 = zeros(N+1,1);
-
+    % Add a ghost point on either side of rho to allow us to reconstruct
+    % the flux at every grid point.
     rho = [rho(1); rho; rho(end)];
-    % Limited \kappa-reconstruction interface values
+    
+    % Limited kappa-reconstruction interface values.
     rho_minus = zeros(N+3,1);
     rho_plus  = zeros(N+3,1);
     for j=2:N+1
@@ -82,16 +70,8 @@ function drhodt = q2odefun(t, rho, dx)
             - ((1+k)/4)*(rho(j) - rho(j-1));
     end
 
-%         rho_imh_minus = rho(j) + ((1-k)/4)*(rho(j-1) - rho(j-2)) ...
-%             + ((1+k)/4)*(rho(j) - rho(j-1));
-%         rho_imh_plus = rho(j) - ((1-k)/4)*(rho(j+1) - rho(j)) ...
-%             - ((1+k)/4)*(rho(j) - rho(j-1));
-%         
-%         rho_iph_minus = rho(j) + ((1-k)/4)*(rho(j) - rho(j-1)) ...
-%             + ((1+k)/4)*(rho(j+1) - rho(j));
-%         rho_iph_plus = rho(j) - ((1-k)/4)*(rho(j+2) - rho(j+1)) ...
-%             - ((1+k)/4)*(rho(j+1) - rho(j));
-
+    F_imh = zeros(N+3,1); % F_{i-1/2}
+    F_iph = zeros(N+3,1); % F_{i+1/2}
     for j=2:N
         F_imh(j) = F(rho_plus(j-1), rho_minus(j));
         F_iph(j) = F(rho_plus(j), rho_minus(j+1));
@@ -101,16 +81,8 @@ function drhodt = q2odefun(t, rho, dx)
     rho_minus = rho_minus(2:end);
     rho_plus = rho_plus(2:end);
     F_iph = F_iph(2:end-1);
-    F_imh = F_imh(2:end-1);
-        
-%         k1(j) = (1/dx(j)) * (F_imh(j) - F_iph(j));
-%         k2(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k1(j)) ...
-%             - f(rho_iph_minus + (dx(j)/2)*k1(j)));
-%         k3(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k2(j)) ...
-%             - f(rho_iph_minus + (dx(j)/2)*k2(j)));
-%         k4(j) = (1/dx(j)) * (f(rho_imh_plus + dx(j)*k3(j)) ...
-%             - f(rho_iph_minus + dx(j)*k3(j)));
-    
+    F_imh = F_imh(2:end-1);        
+  
     % Fourth-order Runge-Kutta method
     % rho = rho - (dt/6).*(k1 + 2*k2 + 2*k3 + k4);
     
@@ -125,18 +97,23 @@ function drhodt = q2odefun(t, rho, dx)
     % rho = rho(2:end-1);
     
     drhodt = (1./dx') .* (F_imh - F_iph);
+    drhodt(1) = 0;
 end
 
-[t,y] = ode45(@(t,rho) q2odefun(t, rho, dx), [0, n_step*dt], rho_0');
-rho = y(end,:)';
+[t,y] = ode45(@(t,rho) q2odefun(t, rho, rho_0, dx), [0, n_step*dt], rho_0');
+rho_xt = y';
 
-% for i=1:n_step
-%     
-%     
-%     
-%     
-%     % rho = rho - (dt./dx)' .* (F_iph - F_imh);
-%     rho_xt(:,i+1) = rho;
-% end
+%     k1 = zeros(N+1,1);
+%     k2 = zeros(N+1,1);
+%     k3 = zeros(N+1,1);
+%     k4 = zeros(N+1,1);
+
+%         k1(j) = (1/dx(j)) * (F_imh(j) - F_iph(j));
+%         k2(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k1(j)) ...
+%             - f(rho_iph_minus + (dx(j)/2)*k1(j)));
+%         k3(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k2(j)) ...
+%             - f(rho_iph_minus + (dx(j)/2)*k2(j)));
+%         k4(j) = (1/dx(j)) * (f(rho_imh_plus + dx(j)*k3(j)) ...
+%             - f(rho_iph_minus + dx(j)*k3(j)));
 
 end
