@@ -3,7 +3,7 @@ function [x, t, rho_xt] = q3a(rho_init, k, flux_scheme)
 rho_max = 1.0;
 v_max = 1.0;
 x_max = 10;
-alpha = 0.1;
+alpha = 0.95;
 n = 3; % number of lanes
 
 % Numerical scheme parameters
@@ -101,7 +101,8 @@ function drhodt = q2odefun(t, rho, rho_0, dx)
     
     % Discard ghost point values so we end up with a (N+1)-vector again.
     F_iph = F_iph(2:end-1,:);
-    F_imh = F_imh(2:end-1,:);        
+    F_imh = F_imh(2:end-1,:);
+    rho = rho(2:end-1,:);
   
     % Simulate accident at x=5 for t<1 by setting the flux going in and out
     % of cell N/2 to 0.
@@ -110,10 +111,22 @@ function drhodt = q2odefun(t, rho, rho_0, dx)
         F_iph(int64(N/2),1) = 0;
     end
     
+    % Construct s matrix
+    s = zeros(N+1,n);
+    for l=1:n
+        if l==1
+            s(:,l) = alpha*(rho(:,2) - rho(:,1));
+        elseif l==n
+            s(:,l) = alpha*(rho(:,n-1) - rho(:,n));
+        else
+            s(:,l) = alpha*(rho(:,l+1) - 2*rho(:,l) + rho(:,l-1));
+        end
+    end
+    
     % Construct the derivative vector d(rho)/dt.
     drhodt = zeros(N+1,n);
     for l=1:n
-        drhodt(:,l) = (1./dx') .* (F_imh(:,l) - F_iph(:,l));
+        drhodt(:,l) = (1./dx') .* (F_imh(:,l) - F_iph(:,l)) + s(:,l);
     end
     drhodt(1,:) = 0; % Impose left BC: rho(0,t) = rho_0.
     
