@@ -1,4 +1,4 @@
-function [x, t, rho_xt] = q1()
+function [x, t, rho_xt] = q2()
 % Problem parameters.
 rho_max = 1.0;
 v_max = 1.0;
@@ -8,7 +8,7 @@ x_max = 10;
 N = 500; % Keep even so we can have a middle cell N/2 for the accident.
 x = linspace(0,x_max,N+1);
 dx = [x(2:end) - x(1:end-1), x_max/N];
-dt = 0.0001;
+dt = 0.01;
 n_step = 2/dt;
 t = linspace(0,n_step*dt,n_step+1);
 k = -1; % kappa
@@ -52,6 +52,10 @@ rho = rho_0;
 rho_xt = zeros(N+1, n_step+1);
 rho_xt(:,1) = rho_0;
 
+function drhodt = q2odefun(t, rho, dx, F_imh, F_iph)
+    drhodt = (1./dx') .* (F_imh - F_iph);
+end
+
 for i=1:n_step
     rho(1) = rho_0(1); % Impose left BC: rho(0,t) = rho_0.
     
@@ -83,13 +87,6 @@ for i=1:n_step
         F_imh(j) = F(rho_imh_minus, rho_imh_plus);
         F_iph(j) = F(rho_iph_minus, rho_iph_plus);
         
-        % Simulate accident at x=5 for t<1 by setting the flux going in and out
-        % of cell N/2 to 0.
-        if i*dt < 1
-            F_imh(int64(N/2)+1) = 0;
-            F_iph(int64(N/2)) = 0;
-        end
-        
 %         k1(j) = (1/dx(j)) * (F_imh(j) - F_iph(j));
 %         k2(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k1(j)) ...
 %             - f(rho_iph_minus + (dx(j)/2)*k1(j)));
@@ -102,12 +99,20 @@ for i=1:n_step
     % Fourth-order Runge-Kutta method
     % rho = rho - (dt/6).*(k1 + 2*k2 + 2*k3 + k4);
     
+    % Simulate accident at x=5 for t<1 by setting the flux going in and out
+    % of cell N/2 to 0.
+    if i*dt < 1
+        F_imh(int64(N/2)+1) = 0;
+        F_iph(int64(N/2)) = 0;
+    end
+    
     % Remove ghost points
     rho = rho(2:end-1);
     
-    rho = ode45();
+    [t,y] = ode45(@(t,rho) q2odefun(t, rho, dx, F_imh, F_iph), [0, dt], rho');
     
-    rho = rho - (dt./dx)' .* (F_iph - F_imh);  
+    rho = y(end,:)';
+    % rho = rho - (dt./dx)' .* (F_iph - F_imh);
     rho_xt(:,i+1) = rho;
 end
 
