@@ -74,7 +74,15 @@ function drhodt = q2odefun(t, rho, rho_0, dx)
     rho_minus = zeros(N+3,1);
     rho_plus  = zeros(N+3,1);
     for j=2:N+1
-        R_i = (rho(j+1) - rho(j))/(rho(j) - rho(j-1));
+        if abs(rho(j) - rho(j-1)) < 1e-6 || abs(rho(j+1) - rho(j)) < 1e-6
+            % To avoid Inf when calculating 1/R_i. Plugging in a high value
+            % like 1e+10 into any flux scheme will reproduce its asymptotic
+            % behavior very closely.
+            R_i = 1e-10;
+        else
+            R_i = (rho(j+1) - rho(j))/(rho(j) - rho(j-1));
+        end
+        
         rho_minus(j) = rho(j) + ((1-k)/4)*Psi(R_i)*(rho(j) - rho(j-1)) ...
             + ((1+k)/4)*Psi(1/R_i)*(rho(j+1) - rho(j));
         rho_plus(j) = rho(j) - ((1-k)/4)*Psi(1/R_i)*(rho(j+1) - rho(j)) ...
