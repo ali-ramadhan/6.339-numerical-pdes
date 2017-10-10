@@ -1,4 +1,4 @@
-function rho_xt = q1()
+function [x, t, rho_xt] = q1()
 % Problem parameters.
 rho_max = 1.0;
 v_max = 1.0;
@@ -37,13 +37,14 @@ end
 % Numerical scheme parameters
 N = 500;
 x = linspace(0,x_max,N+1);
-dx = x(2:end) - x(1:end-1);
+dx = [x(2:end) - x(1:end-1), x_max/N];
 dt = 0.01;
 n_step = 2/dt;
+t = linspace(0,n_step*dt,n_step+1);
 
 % initial condition
-rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
-% rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
+% rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
+rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
 rho = rho_0;
 
 % We will store rho(x,t) for all cell centers x_i and 
@@ -68,11 +69,9 @@ for i=1:n_step
         F_iph(int64(N/2)) = 0;
     end
     
-    size(rho)
-    size(dt./dx)
-    size(F_iph - F_imh)
-    % First-order finite volume scheme
-    rho = rho - (dt./dx) .* (F_iph - F_imh);
+    % First-order finite volume scheme. Time integration is done using a
+    % first-order forward difference Euler method.
+    rho = rho - (dt./dx)' .* (F_iph - F_imh);
     
     rho_xt(:,i+1) = rho;
 end
