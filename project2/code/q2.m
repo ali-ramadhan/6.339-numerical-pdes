@@ -9,7 +9,7 @@ N = 500; % Keep even so we can have a middle cell N/2 for the accident.
 x = linspace(0,x_max,N+1);
 dx = [x(2:end) - x(1:end-1), x_max/N];
 dt = 0.01;
-n_step = 2/dt;
+n_step = 10/dt;
 t = linspace(0,n_step*dt,n_step+1);
 k = -1; % kappa
 
@@ -44,8 +44,8 @@ function F = F(rho_L, rho_R)
 end
 
 % Initial condition setup
-% rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
-rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
+rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
+% rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
 rho = rho_0;
 
 % We will store rho(x,t) for all cell centers x_i and time steps t_n.
@@ -55,7 +55,7 @@ rho_xt(:,1) = rho_0;
 % Derivative of rho for ode45.
 function drhodt = q2odefun(t, rho, rho_0, dx)
     rho(1) = rho_0(1); % Impose left BC: rho(0,t) = rho_0.
-    
+        
     % Add a ghost point on either side of rho to allow us to reconstruct
     % the flux at every grid point.
     rho = [rho(1); rho; rho(end)];
@@ -77,15 +77,13 @@ function drhodt = q2odefun(t, rho, rho_0, dx)
         F_iph(j) = F(rho_plus(j), rho_minus(j+1));
     end
     
-    rho = rho(2:end);
-    rho_minus = rho_minus(2:end);
-    rho_plus = rho_plus(2:end);
+%     rho = rho(2:end);
+%     rho_minus = rho_minus(2:end);
+%     rho_plus = rho_plus(2:end);
+    % Discard ghost point values so we end up with a (N+1)-vector again.
     F_iph = F_iph(2:end-1);
     F_imh = F_imh(2:end-1);        
   
-    % Fourth-order Runge-Kutta method
-    % rho = rho - (dt/6).*(k1 + 2*k2 + 2*k3 + k4);
-    
     % Simulate accident at x=5 for t<1 by setting the flux going in and out
     % of cell N/2 to 0.
     if t < 1
@@ -93,11 +91,9 @@ function drhodt = q2odefun(t, rho, rho_0, dx)
         F_iph(int64(N/2)) = 0;
     end
     
-    % Remove ghost points
-    % rho = rho(2:end-1);
-    
+    % Construct the derivative vector d(rho)/dt.
     drhodt = (1./dx') .* (F_imh - F_iph);
-    drhodt(1) = 0;
+    drhodt(1) = 0; % Impose left BC: rho(0,t) = rho_0.
 end
 
 [t,y] = ode45(@(t,rho) q2odefun(t, rho, rho_0, dx), [0, n_step*dt], rho_0');
@@ -115,5 +111,8 @@ rho_xt = y';
 %             - f(rho_iph_minus + (dx(j)/2)*k2(j)));
 %         k4(j) = (1/dx(j)) * (f(rho_imh_plus + dx(j)*k3(j)) ...
 %             - f(rho_iph_minus + dx(j)*k3(j)));
+
+% Fourth-order Runge-Kutta method
+% rho = rho - (dt/6).*(k1 + 2*k2 + 2*k3 + k4);
 
 end
