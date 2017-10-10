@@ -1,4 +1,4 @@
-function [x, t, rho_xt] = q2()
+function [x, t, rho_xt] = q2(k)
 % Problem parameters.
 rho_max = 1.0;
 v_max = 1.0;
@@ -9,9 +9,8 @@ N = 500; % Keep even so we can have a middle cell N/2 for the accident.
 x = linspace(0,x_max,N+1);
 dx = [x(2:end) - x(1:end-1), x_max/N];
 dt = 0.01;
-n_step = 10/dt;
+n_step = 2/dt;
 t = linspace(0,n_step*dt,n_step+1);
-k = -1; % kappa
 
 % Flux reconstruction function
 function F = F(rho_L, rho_R)
@@ -44,8 +43,8 @@ function F = F(rho_L, rho_R)
 end
 
 % Initial condition setup
-rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
-% rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
+% rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
+rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
 rho = rho_0;
 
 % We will store rho(x,t) for all cell centers x_i and time steps t_n.
