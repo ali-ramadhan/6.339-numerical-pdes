@@ -44,48 +44,64 @@ function F = F(rho_L, rho_R)
 end
 
 % initial condition
-rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
-% rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
+% rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
+rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
 rho = rho_0;
 
 % We will store rho(x,t) for all cell centers x_i and 
 rho_xt = zeros(N+1, n_step+1);
 rho_xt(:,1) = rho_0;
 
-function drhodt = q2odefun(t, rho, dx, F_imh, F_iph)
-    drhodt = (1./dx') .* (F_imh - F_iph);
-end
-
-for i=1:n_step
-    rho(1) = rho_0(1); % Impose left BC: rho(0,t) = rho_0.
+function drhodt = q2odefun(t, rho, dx)
+    rho(1) = 0.8; % Impose left BC: rho(0,t) = rho_0.
     
     plot(x,rho);
-    title(i*dt);
+    title(t);
+    xlim([0,x_max]);
+    ylim([0,1.1*rho_max]);
     drawnow;
     
     % Add ghost points
-    rho = [rho(1); rho; rho(end)];
+    % rho = [rho(1); rho; rho(end)];
     
-    F_imh = zeros(N+1,1); % F_{i-1/2}
-    F_iph = zeros(N+1,1); % F_{i+1/2}
+    F_imh = zeros(N+3,1); % F_{i-1/2}
+    F_iph = zeros(N+3,1); % F_{i+1/2}
 %     k1 = zeros(N+1,1);
 %     k2 = zeros(N+1,1);
 %     k3 = zeros(N+1,1);
 %     k4 = zeros(N+1,1);
-    for j=3:N+1
-        % Limited \kappa-reconstruction interface values
-        rho_imh_minus = rho(j) + ((1-k)/4)*(rho(j-1) - rho(j-2)) ...
-            + ((1+k)/4)*(rho(j) - rho(j-1));
-        rho_imh_plus = rho(j) - ((1-k)/4)*(rho(j+1) - rho(j)) ...
-            - ((1+k)/4)*(rho(j) - rho(j-1));
-        
-        rho_iph_minus = rho(j) + ((1-k)/4)*(rho(j) - rho(j-1)) ...
+
+    rho = [rho(1); rho; rho(end)];
+    % Limited \kappa-reconstruction interface values
+    rho_minus = zeros(N+3,1);
+    rho_plus  = zeros(N+3,1);
+    for j=2:N+1
+        rho_minus(j) = rho(j) + ((1-k)/4)*(rho(j) - rho(j-1)) ...
             + ((1+k)/4)*(rho(j+1) - rho(j));
-        rho_iph_plus = rho(j) - ((1-k)/4)*(rho(j+2) - rho(j+1)) ...
-            - ((1+k)/4)*(rho(j+1) - rho(j));
-        
-        F_imh(j) = F(rho_imh_minus, rho_imh_plus);
-        F_iph(j) = F(rho_iph_minus, rho_iph_plus);
+        rho_plus(j) = rho(j) - ((1-k)/4)*(rho(j+1) - rho(j)) ...
+            - ((1+k)/4)*(rho(j) - rho(j-1));
+    end
+
+%         rho_imh_minus = rho(j) + ((1-k)/4)*(rho(j-1) - rho(j-2)) ...
+%             + ((1+k)/4)*(rho(j) - rho(j-1));
+%         rho_imh_plus = rho(j) - ((1-k)/4)*(rho(j+1) - rho(j)) ...
+%             - ((1+k)/4)*(rho(j) - rho(j-1));
+%         
+%         rho_iph_minus = rho(j) + ((1-k)/4)*(rho(j) - rho(j-1)) ...
+%             + ((1+k)/4)*(rho(j+1) - rho(j));
+%         rho_iph_plus = rho(j) - ((1-k)/4)*(rho(j+2) - rho(j+1)) ...
+%             - ((1+k)/4)*(rho(j+1) - rho(j));
+
+    for j=2:N
+        F_imh(j) = F(rho_plus(j-1), rho_minus(j));
+        F_iph(j) = F(rho_plus(j), rho_minus(j+1));
+    end
+    
+    rho = rho(2:end);
+    rho_minus = rho_minus(2:end);
+    rho_plus = rho_plus(2:end);
+    F_iph = F_iph(2:end-1);
+    F_imh = F_imh(2:end-1);
         
 %         k1(j) = (1/dx(j)) * (F_imh(j) - F_iph(j));
 %         k2(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k1(j)) ...
@@ -94,26 +110,33 @@ for i=1:n_step
 %             - f(rho_iph_minus + (dx(j)/2)*k2(j)));
 %         k4(j) = (1/dx(j)) * (f(rho_imh_plus + dx(j)*k3(j)) ...
 %             - f(rho_iph_minus + dx(j)*k3(j)));
-    end
     
     % Fourth-order Runge-Kutta method
     % rho = rho - (dt/6).*(k1 + 2*k2 + 2*k3 + k4);
     
     % Simulate accident at x=5 for t<1 by setting the flux going in and out
     % of cell N/2 to 0.
-    if i*dt < 1
+    if t < 1
         F_imh(int64(N/2)+1) = 0;
         F_iph(int64(N/2)) = 0;
     end
     
     % Remove ghost points
-    rho = rho(2:end-1);
+    % rho = rho(2:end-1);
     
-    [t,y] = ode45(@(t,rho) q2odefun(t, rho, dx, F_imh, F_iph), [0, dt], rho');
-    
-    rho = y(end,:)';
-    % rho = rho - (dt./dx)' .* (F_iph - F_imh);
-    rho_xt(:,i+1) = rho;
+    drhodt = (1./dx') .* (F_imh - F_iph);
 end
+
+[t,y] = ode45(@(t,rho) q2odefun(t, rho, dx), [0, n_step*dt], rho_0');
+rho = y(end,:)';
+
+% for i=1:n_step
+%     
+%     
+%     
+%     
+%     % rho = rho - (dt./dx)' .* (F_iph - F_imh);
+%     rho_xt(:,i+1) = rho;
+% end
 
 end
