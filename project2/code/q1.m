@@ -70,7 +70,7 @@ for i=1:n_step
     
     % First-order finite volume scheme. Time integration is done using a
     % first-order forward difference Euler method.
-    rho = rho - (dt./dx)' .* (F_iph - F_imh);  
+    rho = rho - (dt./dx)' .* (F_iph - F_imh);
     
     rho_xt(:,i+1) = rho;
 end
