@@ -65,21 +65,23 @@ In this project, we will utilize finite volume methods to study dense traffic fl
 
 We use a scalar hyperbolic conservation law to model traffic density $\rho^{(\ell)}(x,t)$ for $n$ lanes indexed by $\ell = 1,2,\dots,n$
 \begin{equation} \label{eq:conservationLaw}
-	\frac{\partial \rho^{(\ell)}}{\partial t} + \frac{\partial (\rho^{(\ell)} v^{(\ell)})}{\partial x} = s
+	\frac{\partial \rho^{(\ell)}}{\partial t} + \frac{\partial (\rho^{(\ell)} v^{(\ell)})}{\partial x} = s^{(\ell)}
 \end{equation}
-where $v^{(\ell)}(x,t)$ is the average velocity of the cars. This, however, provides us with only one equation for two unknowns and thus we specify the velocity by
+where $v^{(\ell)}(x,t)$ is the average velocity of the cars in lane $\ell$. This, however, provides us with only one equation for two unknowns and thus we specify the velocity by
 \begin{equation} \label{eq:velocity}
-	v(\rho) = v_\mathrm{max} \left( 1 - \frac{\rho^2}{\rho_\mathrm{max}^2} \right)
+	v^{(\ell)}(\rho^{(\ell)}) = v_\mathrm{max} \left( 1 - \frac{\left(\rho^{(\ell)}\right)^2}{\rho_\mathrm{max}^2} \right)
 \end{equation}
-giving us a traffic flux of 
+where $\rho_\mathrm{max}$ and $v_\mathrm{max}$ are the lane-independent maximum traffic density and velocity respectively. This gives us a traffic flux of 
 \begin{equation} \label{eq:flux}
-f(\rho) = \rho v = v_\mathrm{max} \left( \rho - \frac{\rho^3}{\rho_\mathrm{max}^2} \right)
+f^{(\ell)}(\rho^{(\ell)}) = \rho^{(\ell)} v^{(\ell)} = v_\mathrm{max} \left( \rho^{(\ell)} - \frac{\left(\rho^{(\ell)}\right)^3}{\rho_\mathrm{max}^2} \right)
 \end{equation}
 The source term
 \begin{equation} \label{eq:source}
 	s^{(\ell)} = \sumop_{\substack{|k-\ell|=1 \\ 1 \le k,\ell \le n}} \alpha \left( \rho^{(k)} - \rho^{(\ell)} \right)
 \end{equation}
-models the density of traffic that is switching lanes from neighboring lanes. $\alpha$ is the fraction of drivers that change lanes.
+models the density of traffic that is switching into lane $\ell$ from neighboring lanes. $\alpha$ is the fraction of drivers that change lanes.
+
+\section{Solution by a first-order finite volume scheme}
 
 We will split up our one-dimensional grid into a number of cells indexed by $i=1,2,\ldots,N$. We will index the edges of the cell $i$ by $i-\frac{1}{2}$ for the left boundary of the cell, and by $i+\frac{1}{2}$ for the right boundary of the cell. So we can think of $i$ as indexing the cell centers.
 
@@ -109,16 +111,17 @@ which can be rearranged to write
 	\bar{\rho}_i(t_2) - \bar{\rho}_i(t_1) = \frac{d}{dt} \int_{t_1}^{t_2} \rho_i(t) \; dt = \int_{t_1}^{t_2} \left( - \frac{F_{i+\frac{1}{2}} - F_{i-\frac{1}{2}}}{\Delta x_i} \right) \; dt
 \end{equation*}
 where the integrands inside the two integrals must be the same so that
-\begin{equation*}
+\begin{equation*} \label{eq:drhodt}
 	\frac{d \bar{\rho}_i}{dt} = - \frac{F_{i+\frac{1}{2}} - F_{i-\frac{1}{2}}}{\Delta x_i}
 \end{equation*}
 and if we approximate the time derivate by a first-order forward difference finite difference operator $\dot{\bar{\rho}}_i = (\bar{\rho}_i^{n+1} - \bar{\rho}_i^n)/\Delta t$ and further rearrange, we obtain
-\begin{equation}
+\begin{equation} \label{eq:firstorder}
 	\bar{\rho}_i^{n+1} = \bar{\rho}_i^n - \frac{\Delta t}{\Delta x_i} \left( F_{i+\frac{1}{2}} - F_{i-\frac{1}{2}} \right) 
 \end{equation}
 
+\subsection{Solving the Riemann problem for Gudonov's scheme}
 \begin{tcolorbox}
-  \textit{Question 1(a)---For the numerical flux function use Godunov’s scheme in which the flux is the exact solution to the Riemann problem at the interface between two volumes, i.e.,}
+  \textit{Analyzing $f(\rho)$ determine the Godunov scheme flux in a manner that does not require a brute force search for the minimum/maximum of the flux between $\rho_i$ and $\rho_{i+1}$.}
 \end{tcolorbox}
 
 For the Gudonov scheme we will show that we can solve the Riemann problem exactly and without the use of a brute force search. We first notice that the flux function \eqref{eq:flux} is a cubic function, increasing monotonically until it attains a maximum value of $\rho_\mathrm{max}/\sqrt{3}$ and then decreases monotonically. The maximum was found by setting the derivative of \eqref{eq:flux} to zero and solving for the value of $\rho$ that maximizes $f(\rho)$:
