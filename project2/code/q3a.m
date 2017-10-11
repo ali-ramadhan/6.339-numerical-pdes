@@ -1,10 +1,14 @@
-function [x, t, rho_xt] = q3a(rho_init, k, flux_scheme)
+% * k = kappa and possible options for flux_scheme are 'none', 'minmod',
+% 'superbee', or 'vanLeer'.
+% * rho_init must be between 0 and rho_max.
+% * n is the number of lanes.
+function [x, t, rho_xt] = q3a(rho_init, n, k, flux_scheme)
 % Problem parameters.
 rho_max = 1.0;
 v_max = 1.0;
 x_max = 10;
-alpha = 0.95;
-n = 3; % number of lanes
+alpha = 0.1;
+% n = 3; % number of lanes
 
 % Numerical scheme parameters
 N = 500; % Keep even so we can have a middle cell N/2 for the accident.
@@ -103,23 +107,20 @@ function drhodt = q2odefun(t, rho, rho_0, dx)
     F_iph = F_iph(2:end-1,:);
     F_imh = F_imh(2:end-1,:);
     rho = rho(2:end-1,:);
-  
-    % Simulate accident at x=5 for t<1 by setting the flux going in and out
-    % of cell N/2 to 0.
-    if t < 1
-        F_imh(int64(N/2)+1,1) = 0;
-        F_iph(int64(N/2),1) = 0;
-    end
     
     % Construct s matrix
     s = zeros(N+1,n);
-    for l=1:n
-        if l==1
-            s(:,l) = alpha*(rho(:,2) - rho(:,1));
-        elseif l==n
-            s(:,l) = alpha*(rho(:,n-1) - rho(:,n));
-        else
-            s(:,l) = alpha*(rho(:,l+1) - 2*rho(:,l) + rho(:,l-1));
+    if n==1
+        ; % No lane switching if there's only one lane.
+    else
+        for l=1:n
+            if l==1
+                s(:,l) = alpha*(rho(:,2) - rho(:,1));
+            elseif l==n
+                s(:,l) = alpha*(rho(:,n-1) - rho(:,n));
+            else
+                s(:,l) = alpha*(rho(:,l+1) - 2*rho(:,l) + rho(:,l-1));
+            end
         end
     end
     
@@ -130,27 +131,28 @@ function drhodt = q2odefun(t, rho, rho_0, dx)
     end
     drhodt(1,:) = 0; % Impose left BC: rho(0,t) = rho_0.
     
+    % Represent braking in the middle lane by an impulsive source term for
+    % t < 0.01.
+    if t < 0.01
+        if n == 1 || n == 2
+            l = 1; % Choose first lane if we only have 1 or 2.
+        else
+            l = int64(n/2); % Choose the middle lane (rounded down).
+        end
+        
+        % You really want a Dirac delta function here but a large number
+        % should do the trick. Well, apparently not too large otherwise rho
+        % blows up above rho_max...
+        S = 50;
+        drhodt(int64(N/2),l) = drhodt(int64(N/2),l) + S;
+        drhodt(int64(N/2)+1,l) = drhodt(int64(N/2)+1,l) - S;
+    end
+    
     % Convert d(rho)/dt matrix into a column vector.
     drhodt = reshape(drhodt, [n*(N+1),1]);
 end
 
 [t,y] = ode45(@(t,rho) q2odefun(t, rho, rho_0, dx), [0, n_step*dt], rho_0');
 rho_xt = y';
-
-%     k1 = zeros(N+1,1);
-%     k2 = zeros(N+1,1);
-%     k3 = zeros(N+1,1);
-%     k4 = zeros(N+1,1);
-
-%         k1(j) = (1/dx(j)) * (F_imh(j) - F_iph(j));
-%         k2(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k1(j)) ...
-%             - f(rho_iph_minus + (dx(j)/2)*k1(j)));
-%         k3(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k2(j)) ...
-%             - f(rho_iph_minus + (dx(j)/2)*k2(j)));
-%         k4(j) = (1/dx(j)) * (f(rho_imh_plus + dx(j)*k3(j)) ...
-%             - f(rho_iph_minus + dx(j)*k3(j)));
-
-% Fourth-order Runge-Kutta method
-% rho = rho - (dt/6).*(k1 + 2*k2 + 2*k3 + k4);
 
 end
