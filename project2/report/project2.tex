@@ -179,6 +179,10 @@ Figure \ref{fig:1b_heavy_surf} shows a heatmap of the traffic density as it evol
 
 The given boundary conditions, $\rho(0, t) = \rho_0$ and $\rho(10, t) = \rho_0$, represent Dirchlet boundary conditions specify the traffic density at the left and right boundaries. The left boundary condition can always be specified in this way as it simply represents a constant flux of cars through the $x=0$ boundary and into the single lane. However, the right boundary condition at $x=10$ cannot always be specified in this manner as it will not always make physical sense or preserve the conservation law. It also represents a constant flux of cars through the right boundary, which makes sense in the case that traffic is flowing smoothly through the single lane, but if some nonlinear behavior was to occur between the two boundaries, such as an accident or a slow driver then nothing guarantees that the flux through $x=10$ would remain at its initial value.
 
+A problem may arise if a shockwave or traffic density wave propagates backwards towards $x=0$ at which point the constant $\rho$ boundary condition would distory the wave or shockwave. To solve this, we must employ a large enough domain such that waves do not get too close to the boundaries or stop integrating in time once the wave gets close to the boundary. In this problem set, I did not observe any waves getting close to the $x=0$ for $t \le 2$ but they do pass through the $x=10$ boundary often.
+
+In my case, I argue that it makes sense to impose a constant boundary condition on the left $x=0$ boundary to ensure a constant influx of cars, and no boundary condition on the right (or a Neumann boundary condition of $d\rho(x=10,t)/dt=0$) to let waves propagate to the right past the boundary where they won't affect the solution on $0 \le x \le 10$. But we cannot let waves simply propagate left through the $x=0$ boundary as they should be affecting our solution with cars moving to the right---it would violate causality.
+
 In both light and heavy traffic, we notice a stationary shockwave forms at $x=5$, the location of the accident, at $t=0$ and fans out at $t=1$ when the accident is cleared. The difference between the two is in the direction of propagation of the traffic density disturbance.
 
 In light traffic (figure \ref{fig:1b_light_surf}) the traffic jam is small enough that every car can almost immediately start driving at the maximum speed and incoming cars do not have to stop. Bumper-to-bumper traffic is no longer the case, and a region of high (but not saturated) traffic density forms and propagates forward. The traffic density diffuses more quickly and the cars make it further than in the heavy traffic case as they can drive at a faster speed, even when catching up with the other cars that were not stopped by the accident.
@@ -235,7 +239,7 @@ The first we will consider is the minmod flux limiter function which takes the l
 \begin{equation}
 \phi_\mathrm{minmod}(r) = \max\left\{ 0, \min\left\{r,1\right\} \right\}
 \end{equation}
-while its counterpart, the superbee flux limiter function, can be written as 
+while its counterpart, the superbee flux limiter function, is the \emph{least diffusive} limiter and can be written as 
 \begin{equation}
 \phi_\mathrm{superbee}(r) = \max \left\{ 0, \min\left\{2r,1\right\}, \min\left\{r,2\right\} \right\}
 \end{equation}
@@ -257,8 +261,8 @@ Trying out each flux limiter function for each value of $\kappa \in {-1,0,1/3}$.
 We immediately notice almost no difference in any of the solutions produced as they overlap almost perfectly except for tiny numerical differences. They agree almost exactly with the solution produced using no flux limiter function in figure \ref{fig:2a_light}. We previously suspected that the light traffic case did not suffer much from extreme slope reconstructions, however, what is surprising is the degree to which all the solutions agree. Perhaps there would be more variability had I implemented my own fourth-order Runge-Kutta time integration scheme but for serious applications, no one would implement their own \texttt{ode45} and reinvent the wheel. Our solution, especially for the light traffic case, appears to be rather well-behaved compared to other nonlinear partial differetial equations exhibiting shockwaves so perhaps these flux limiter functions find much more utility when applied to other problems or to higher-dimensional problems. I would have looked at the heavy traffic case but it was not required for this problem set.
 
 \section{Multi-lane problems}
-The first thing we will do here is rewrite the lane-switching source term \eqref{eq:source} to be more friendly to compute. We will assume we have $\ell=1,2,\dots,n$ lanes. Drivers can only switch in from neighbouring lanes and the source term is only positive if a lane has a lower density, so $s^{(1)} = \alpha \left( \rho^{(2)} - \rho^{(1)} \right)$ and $s^{(n)} = \alpha \left( \rho^{(n-1)} - \rho^{(n)} \right)$, otherwise $s^{(\ell)} = \alpha \left( \rho^{(\ell+1)} - 2\rho^{(\ell)} + \rho^{(\ell-1)} \right)$ for $1 < \ell < n$. Thus the source term can be written as 
-\begin{equation} \label{eq:min_f}
+The first thing we will do here is rewrite the lane-switching source term \eqref{eq:source} to be more friendly to compute. We will assume we have $n$ lanes indexed by $\ell=1,2,\dots,n$. Drivers can only switch in from neighbouring lanes due to the $|k-\ell|=1$ constraint and only into lanes with lower traffic densities, so $s^{(1)} = \alpha \left( \rho^{(2)} - \rho^{(1)} \right)$ and $s^{(n)} = \alpha \left( \rho^{(n-1)} - \rho^{(n)} \right)$, otherwise $s^{(\ell)} = \alpha \left( \rho^{(\ell+1)} - 2\rho^{(\ell)} + \rho^{(\ell-1)} \right)$ for $1 < \ell < n$. Thus the source term can be written as 
+\begin{equation} \label{eq:sourceEasy}
 s^{(\ell)} = \sumop_{\substack{|k-\ell|=1 \\ 1 \le k,\ell \le n}} \alpha \left( \rho^{(k)} - \rho^{(\ell)} \right) = \alpha
 \begin{cases}
   \rho^{(2)} - \rho^{(1)},& \text{if } \ell = 1 \\
@@ -271,5 +275,25 @@ s^{(\ell)} = \sumop_{\substack{|k-\ell|=1 \\ 1 \le k,\ell \le n}} \alpha \left( 
 \begin{tcolorbox}
   \textit{Ethan Hunter reasons that traffic behaves like a living organism and takes the example when a driver brakes abruptly on a highway. Effectively the abrupt breaking can be modeled as an impulsive source term $S$ at $t = 0$ at $x = 5$ in some initial traffic $\rho_\mathrm{init}$ where $\alpha = 0.1$. Find a initial condition or relationship between $S$ and $\rho_\mathrm{init}$ such that a shock wave forms later in time for the single, double and a triple lane case.}
 \end{tcolorbox}
+
+In modeling multiple lanes we simply solve the conservative scalar law \eqref{eq:conservationLaw} for each lane $\ell$ using the $\kappa$-reconstructions given by \eqref{eq:kappa1} and \eqref{eq:kappa2} to compute the cell interface values with $\kappa=-1$ as it seemed to be the most stable in figure \ref{fig:2a_heavy}. The superbee flux limiter is employed because I think, probably erranously, that it's \emph{least diffusive} nature might help in observing the sharp shockwaves. 
+
+Ideally we would want to model the sudden braking by Dirac delta functions, or distributions to be proper, such that $S(x,t) = \delta(t)\delta(x-x_0)$. However, introducing infinities numerically will be disastrous and so we will simply add a finite-valued impulse source term at the first time step $n=1$ and at $x=5$ or cell $i=N/2$. Letting $S_0 \in \mathbb{R}$ be the magnitude of the impulse, we will use the discrete version of the Dirac delta function, the Kronecker delta tensor $\delta_{ij}$ and write $S(x,t) = S_0\delta_{n1}\delta_{i,\frac{N}{2}}$. The value of $S_0$ must be continously adjusted for each numerical experiment to avoid cases where $\rho(x,t) > \rho_\mathrm{max}$ and to avoid creating cars out of thin air. However, the traffic dynamics seem to qualitatively make sense even with a bit of non-conservative behavior. To keep the scheme conservative, we could apply a negative forcing term $S_{-}(x,t) = -S_0\delta_{n1}\delta_{i,\frac{N}{2}+1}$ to the cell to the right of the one forced by $+S(x,t)$ to simulate the decreasing density of cars ahead of the sudden braker.
+
+For the 1-lane case, it seems that any value of $\rho_\mathrm{init}$ and $S$ produces a shockwave. Like in the case of the simulated car accident, the traffic density wave propagates backwards for high values of $\rho_\mathrm{init}$ and forwards for low $\rho_\mathrm{init}$. The higher the traffic density, the longer the shockwave lives.
+
+For the 2 and 3-lane case, it appears that the shockwave decays more rapidly as cars are allowed to change lanes. However, for $\alpha=0.1$ is it not that much more rapid as the lane switching source term is proportional to the difference in density, which tends to be quite small over most of the domain, then is multiplied by $\alpha$. Figure \ref{fig:q3a_3lanes} shows an example solution for $n=3$ lanes. The shockwave has already began to decay on lane 2, helped by 
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{q3a_3lanes.png}
+  \caption{Plot of $\rho(x,t=1.6)$ for intermediate traffic, $\rho_\mathrm{init} = 0.5\rho_\mathrm{max}$ for each lane, using $\kappa=-1$ with the Superbee flux limiter scheme. Lane 1 was offset by $-0.1$ and lane 3 was offset by $+0.1$.}
+  \label{fig:q3a_3lanes}
+\end{figure}
+
+Physically, however, I would differentiate between a large shockwave actually representing a buildup of traffic and a small shockwave representing one car suddenly braking. Furthermore, I would expect that $\rho_\mathrm{init}$ cannot be not too low or too high, possibly even the existance of two critical values between which a shockwave is formed in the middle lane. If $\rho_\mathrm{init}$ is too low then there is very little traffic density to respond appreciably to the sudden braking, that is, there are no cars behind the braking car so no one else slows down and business continues on as usual. In this case, I suppose the shockwave decays rapidly. If $\rho_\mathrm{init}$ is too high, then the cars are already travelling quite slowly so a sudden braking just slows the cars down just a little and they continue on afterwards. However, in the intermediate case when cars are travelling quite quickly and traffic density is intermediate, a sudden braking could cause the one or two cars behind you to slow down substantially which could result in a propagating shockwave if there are enough cars behind the sudden braker in rather close proximity.
+
+\subsection{Multi-lane simulation with an accident and time-delayed switching term}
+Unfortunately I watched too much Netflix over the long weekend (was worth it, would recommend American Vandal) and did not leave myself enough time to attempt this question.
 
 \end{document}
