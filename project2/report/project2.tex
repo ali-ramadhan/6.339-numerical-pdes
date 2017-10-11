@@ -154,11 +154,14 @@ The maximum can be evaluated analytically following a very similar argument for 
 \end{cases}
 \end{equation}
 
+\subsection{Simulating an accident for light and heavy traffic flow}
 \begin{tcolorbox}
-  \textit{Question 1(b)---Look at the problem of a traffic accident causing a lane ($x \in [0, 10]$) to be blocked at time $t = 0$ and solve the continuity equation \eqref{eq:conservationLaw}. \\
-  \forceindent~Use the following problem parameters: $\rho_\mathrm{max}=1$, $v_\mathrm{max} = 1$. An accident happened at $t = 0$ at $x = 5$ and is cleared at $t = 1$. Due to the accident, the lane is completely blocked or the velocity is zero at $x = 5$. The initial condition is $\rho(x, t = 0) = \rho_0$. The boundary conditions, if applicable, are $\rho(0, t) = \rho_0$, $\rho(10, t) = \rho_0$. Consider two conditions: \textit{i.} Light traffic: $\rho_0 = 0.2 \rho_\mathrm{max}$, \textit{ii.} Traffic jam: $\rho_0 = 0.8 \rho_\mathrm{max}$. \\
-  \forceindent Solve the PDE from $t = 0$ to $t = 2$. When are the specified boundary conditions not applicable? Why? How do you modify the set of boundary conditions? In what conditions can we prescribe a density on the left side of the boundary? In what conditions can we prescribe a density on the right side of the boundary? Why? Describe what happens to $\rho$ and $v$ as time evolves due to the blockage. For the traffic jam conditions, how is this related to the domino effect?}
+  \textit{Solve the PDE from $t = 0$ to $t = 2$. When are the specified boundary conditions not applicable? Why? How do you modify the set of boundary conditions? In what conditions can we prescribe a density on the left side of the boundary? In what conditions can we prescribe a density on the right side of the boundary? Why? Describe what happens to $\rho$ and $v$ as time evolves due to the blockage. For the traffic jam conditions, how is this related to the domino effect?}
 \end{tcolorbox}
+
+Now that we have solved the Riemann problem exactly, we can implement Gudonov's scheme using \eqref{eq:min_f} and \eqref{eq:max_f} to calculate the flux terms in \eqref{eq:firstorder} and solve for the traffic density $\rho$ as a function of time for the case of a single-lane accident as described in the problem set.
+
+Figure \ref{fig:1b_heavy_surf} shows a heatmap of the traffic density as it evolves in time for the case of a lane initialized with heavy traffic, represented by the initial condition $\rho(0,t) = 0.8\rho_\mathrm{max}$, while figure \ref{fig:1b_light_surf} shows a heatmap of the traffic density for a lane initialized with light traffic, represented by the initial condition $\rho(0,t) = 0.2\rho_\mathrm{max}$.
 
 \begin{figure}[h!]
   \centering
@@ -174,34 +177,99 @@ The maximum can be evaluated analytically following a very similar argument for 
   \label{fig:1b_heavy_surf}
 \end{figure}
 
-% Question 2a
+The given boundary conditions, $\rho(0, t) = \rho_0$ and $\rho(10, t) = \rho_0$, represent Dirchlet boundary conditions specify the traffic density at the left and right boundaries. The left boundary condition can always be specified in this way as it simply represents a constant flux of cars through the $x=0$ boundary and into the single lane. However, the right boundary condition at $x=10$ cannot always be specified in this manner as it will not always make physical sense or preserve the conservation law. It also represents a constant flux of cars through the right boundary, which makes sense in the case that traffic is flowing smoothly through the single lane, but if some nonlinear behavior was to occur between the two boundaries, such as an accident or a slow driver then nothing guarantees that the flux through $x=10$ would remain at its initial value.
 
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=\textwidth]{2a_heavy.png}
-  \caption{}
-  \label{fig:2a_heavy}
-\end{figure}
+In both light and heavy traffic, we notice a stationary shockwave forms at $x=5$, the location of the accident, at $t=0$ and fans out at $t=1$ when the accident is cleared. The difference between the two is in the direction of propagation of the traffic density disturbance.
+
+In light traffic (figure \ref{fig:1b_light_surf}) the traffic jam is small enough that every car can almost immediately start driving at the maximum speed and incoming cars do not have to stop. Bumper-to-bumper traffic is no longer the case, and a region of high (but not saturated) traffic density forms and propagates forward. The traffic density diffuses more quickly and the cars make it further than in the heavy traffic case as they can drive at a faster speed, even when catching up with the other cars that were not stopped by the accident.
+
+In heavy traffic (figure \ref{fig:1b_heavy_surf}) the bumper-to-bumper traffic jam is sustained long after the accident is cleared. The traffic jam is long enough that not every car can begin to move. This causes a further disturbance as the dense incoming traffic must stop until all the cars in front of them have moved. The result is a traffic density disturbance, almost like a wave, representing bumper-to-bumper traffic that propagates backwards and could take a while to fully diffuse. While the cars at the front of the traffic jam can immediately start driving at full speed again, they run into the dense traffic ahead of them rather quickly which forces them to slow down. This prevents the traffic jam from diffusing quickly. Thus, even though the accident blocked the lane for 1 unit of time, the resulting traffic jam may last much longer than that and propagate a substaintial distance backwards.
+
+The domino effect can be seen in the dynamics of heavy traffic flow. Once a few cars have to stop, the all the incoming traffic behind them must stop one by one, like a series of dominos toppling down except that new dominos keep getting added.
+
+\section{Solution by a second-order finite volume scheme}
+We will now use use a second-order scheme in which the interface values are found using the so-called limited $\kappa$-reconstructions
+\begin{align}
+  \rho_{i+\frac{1}{2}}^- &= \rho_i
+    + \frac{1-\kappa}{4} \phi(R_i) (\rho_i - \rho_{i-1})
+    + \frac{1+\kappa}{4} \phi\left(\frac{1}{R_i}\right)(\rho_{i+1} - \rho_i) \label{eq:kappa1} \\
+  \rho_{i-\frac{1}{2}}^+ &= \rho_i
+    - \frac{1-\kappa}{4} \phi\left(\frac{1}{R_i}\right) (\rho_{i+1} - \rho_i)
+    +- \frac{1+\kappa}{4} \phi(R_i) (\rho_i - \rho_{i-1}) \label{eq:kappa2}
+\end{align}
+where $\displaystyle R_i = \frac{\rho_{i+1} - \rho_i}{\rho_i - \rho_{i-1}}$ is the ratio of successive slopes for the solution, $\phi(r)$ is the flux limiter function, and $\kappa$ determines the slope reconstruction scheme used. These interface values as can be plugged into the Gudonov scheme to obtain a second-order accurate flux reconstruction.
+
+\subsection{Flux reconstruction with no limiter function}
+\begin{tcolorbox}
+  \textit{Using the same mesh size and time step, solve the previous traffic flow problems with the second order algorithm without limiting (i.e. set $\phi = 1$) for $\kappa = -1$, 0, and $1/3$. Describe the quality of these solutions. In particular, describe the presence of oscillations. You can for instance look at the solution at time $t = 2$.}
+\end{tcolorbox}
+
+If we use no flux limiter function, then we will set $\phi(r) = 1$ for all $r$ in the equations for the interface values \eqref{eq:kappa1} and \eqref{eq:kappa2}. Figure \ref{fig:2a_light} shows the traffic density at $t=2$ for the light traffic case using flux reconstructions with different values of $\kappa$ while figure \ref{fig:2a_heavy} shows the same for the heavy traffic case.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{2a_light.png}
-  \caption{}
+  \caption{Plot of $\rho(x,t=2)$ for light traffic, $\rho(0,t) = 0.2\rho_\mathrm{max}$, using multiple flux reconstruction schemes defined by the different $\kappa$ values.}
   \label{fig:2a_light}
 \end{figure}
 
-% Question 2b
+Qualitatively for the light traffic case we see no difference between the solutions produced by the second-order scheme in figure \ref{fig:2a_light} and the first-order scheme in figure \ref{fig:1b_light_surf}, and the value of $\kappa$ employed does not change the solution in any substaintial manner. The scheme appears to be stable with respect to changes in $\kappa$, quite a desirable quality. Perhaps in the light traffic case that was little need for a flux limiter function as the shockwave fans out rather quickly and the traffic density is not saturated for long. In particular, we notice no spurious oscillations, however we attribute this mainly to the robustness of MATLAB's \texttt{ode45} and its adaptive time stepping which appeared to step back in time once any spurious oscillations set in to adjust the time step accordingly such that the oscillations disappear. When they did set in, they mainly appeared at the traffic density peak.
 
-The minmod scheme $\phi(r) = \max\left\{ 0, \min\left\{r,1\right\} \right\}$. 
-Superbee $\phi(r) = \max \left\{ 0, \min\left\{2r,1\right\}, \min\left\{r,2\right\} \right\} $.
-van Leer $\displaystyle \phi(r) = \frac{r + |r|}{1 + |r|}$.
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{2a_heavy.png}
+  \caption{Plot of $\rho(x,t=2)$ for heavy traffic, $\rho(0,t) = 0.8\rho_\mathrm{max}$, using multiple flux reconstruction schemes defined by the different $\kappa$ values, but with no flux limiter function in action.}
+  \label{fig:2a_heavy}
+\end{figure}
+
+Likewise, for the heavy traffic case see no major differences between the solutions produced by the second-order scheme in figure \ref{fig:2a_heavy} and the first-order scheme in figure \ref{fig:1b_heavy_surf}. However, certain values of $\kappa$ now seem to introduce a small oscillation, which grows smaller with time, at the shockwave as it fans out. In particular, at $\kappa = -1$ no spurious oscillations of any kind are recognizable, however $\kappa = 0$ and $\kappa = 1/3$ produce increasingly larger oscillations. Again, some spurious oscillations do show up at the traffic density peak but \texttt{ode45} appears to do a fantastic job at adaptively time stepping to avoid them. Perhaps spurious oscillations are now are a larger problem as the shockwave persists for longer and slopes are much larger for the heavy traffic case, neccessitating the use of a flux limiter function.
+
+\subsection{Flux reconstruction utilizing various limiter functions}
+\begin{tcolorbox}
+  \textit{Now employ the limited algorithm with the MinMod, Van Leer, and Superbee limiters. Again, utilize the same mesh size and time step as above, and all three values of $\kappa = -1$, $0$, and $1/3$. Describe the quality of these solutions, in particular how they compare with each other and with the solution obtained without limiters for the light traffic case. Again, it might be useful to look at the solutions at time t = 2.0 obtained with the different methods.}
+\end{tcolorbox}
+
+We will now introduce three different flux limiter functions $\phi(r)$ into the equations for the interface values \eqref{eq:kappa1} and \eqref{eq:kappa2} in an attempt to avoid extreme slope reconstructions and spurious oscillations.
+
+The first we will consider is the minmod flux limiter function which takes the lower boundary of the total variation diminishing (TVD) region resulting in it being the \emph{most diffusive} flux limiter function. It can be written as
+\begin{equation}
+\phi_\mathrm{minmod}(r) = \max\left\{ 0, \min\left\{r,1\right\} \right\}
+\end{equation}
+while its counterpart, the superbee flux limiter function, can be written as 
+\begin{equation}
+\phi_\mathrm{superbee}(r) = \max \left\{ 0, \min\left\{2r,1\right\}, \min\left\{r,2\right\} \right\}
+\end{equation}
+and represents the upper boundary of the TVD region. The third flux limiter function we will consider is the van Leer flux function can be written as
+\begin{equation}
+\phi_\mathrm{van Leer}(r) = \frac{r + |r|}{1 + |r|}
+\end{equation}
+and takes on a value in between the minmod and superbee limiters. It is second-order accurate when the solution is smooth, and downgrades to upwind or first-order accurate at discontinuities.
+
+Trying out each flux limiter function for each value of $\kappa \in {-1,0,1/3}$. We plot the traffic density at $t=2$ for each of the nine cases in figure \ref{fig:2b_all}.
 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=\textwidth]{2b_all.png}
-  \caption{}
+  \caption{Plot of $\rho(x,t=2)$ for light traffic, $\rho(0,t) = 0.2\rho_\mathrm{max}$, using multiple flux limiter schemes (minmod, Superbee, and van Leer) and multiple flux reconstruction schemes defined by the different $\kappa$ values.}
   \label{fig:2b_all}
 \end{figure}
 
+We immediately notice almost no difference in any of the solutions produced as they overlap almost perfectly except for tiny numerical differences. They agree almost exactly with the solution produced using no flux limiter function in figure \ref{fig:2a_light}. We previously suspected that the light traffic case did not suffer much from extreme slope reconstructions, however, what is surprising is the degree to which all the solutions agree. Perhaps there would be more variability had I implemented my own fourth-order Runge-Kutta time integration scheme but for serious applications, no one would implement their own \texttt{ode45} and reinvent the wheel. Our solution, especially for the light traffic case, appears to be rather well-behaved compared to other nonlinear partial differetial equations exhibiting shockwaves so perhaps these flux limiter functions find much more utility when applied to other problems or to higher-dimensional problems. I would have looked at the heavy traffic case but it was not required for this problem set.
+
+\section{Multi-lane problems}
+The first thing we will do here is rewrite the lane-switching source term \eqref{eq:source} to be more friendly to compute. We will assume we have $\ell=1,2,\dots,n$ lanes. Drivers can only switch in from neighbouring lanes and the source term is only positive if a lane has a lower density, so $s^{(1)} = \alpha \left( \rho^{(2)} - \rho^{(1)} \right)$ and $s^{(n)} = \alpha \left( \rho^{(n-1)} - \rho^{(n)} \right)$, otherwise $s^{(\ell)} = \alpha \left( \rho^{(\ell+1)} - 2\rho^{(\ell)} + \rho^{(\ell-1)} \right)$ for $1 < \ell < n$. Thus the source term can be written as 
+\begin{equation} \label{eq:min_f}
+s^{(\ell)} = \sumop_{\substack{|k-\ell|=1 \\ 1 \le k,\ell \le n}} \alpha \left( \rho^{(k)} - \rho^{(\ell)} \right) = \alpha
+\begin{cases}
+  \rho^{(2)} - \rho^{(1)},& \text{if } \ell = 1 \\
+  \rho^{(\ell+1)} - 2\rho^{(\ell)} + \rho^{(\ell-1)},& \text{if } 1 < \ell < n \\
+  \rho^{(n-1)} - \rho^{(n)},& \text{if } \ell = n
+\end{cases}
+\end{equation}
+
+\subsection{Multi-lane traffic simulation with an impulsive source term}
+\begin{tcolorbox}
+  \textit{Ethan Hunter reasons that traffic behaves like a living organism and takes the example when a driver brakes abruptly on a highway. Effectively the abrupt breaking can be modeled as an impulsive source term $S$ at $t = 0$ at $x = 5$ in some initial traffic $\rho_\mathrm{init}$ where $\alpha = 0.1$. Find a initial condition or relationship between $S$ and $\rho_\mathrm{init}$ such that a shock wave forms later in time for the single, double and a triple lane case.}
+\end{tcolorbox}
 
 \end{document}
