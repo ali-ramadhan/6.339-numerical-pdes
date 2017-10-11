@@ -1,3 +1,5 @@
+% k = kappa and possible options for flux_scheme are 'none', 'minmod',
+% 'superbee', or 'vanLeer'.
 function [x, t, rho_xt] = q2fluxLimiter(k, flux_scheme)
 % Problem parameters.
 rho_max = 1.0;
@@ -111,21 +113,5 @@ end
 
 [t,y] = ode45(@(t,rho) q2odefun(t, rho, rho_0, dx), [0, n_step*dt], rho_0');
 rho_xt = y';
-
-%     k1 = zeros(N+1,1);
-%     k2 = zeros(N+1,1);
-%     k3 = zeros(N+1,1);
-%     k4 = zeros(N+1,1);
-
-%         k1(j) = (1/dx(j)) * (F_imh(j) - F_iph(j));
-%         k2(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k1(j)) ...
-%             - f(rho_iph_minus + (dx(j)/2)*k1(j)));
-%         k3(j) = (1/dx(j)) * (f(rho_imh_plus + (dx(j)/2)*k2(j)) ...
-%             - f(rho_iph_minus + (dx(j)/2)*k2(j)));
-%         k4(j) = (1/dx(j)) * (f(rho_imh_plus + dx(j)*k3(j)) ...
-%             - f(rho_iph_minus + dx(j)*k3(j)));
-
-% Fourth-order Runge-Kutta method
-% rho = rho - (dt/6).*(k1 + 2*k2 + 2*k3 + k4);
 
 end
