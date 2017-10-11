@@ -43,19 +43,16 @@ function F = F(rho_L, rho_R)
 end
 
 % Initial condition setup
-% rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
-rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
-rho = rho_0;
-
-% We will store rho(x,t) for all cell centers x_i and time steps t_n.
-rho_xt = zeros(N+1, n_step+1);
-rho_xt(:,1) = rho_0;
+rho_0 = 0.2*rho_max*ones(N+1,1); % light traffic
+% rho_0 = 0.8*rho_max*ones(N+1,1); % heavy traffic
 
 % Derivative of rho for ode45.
 function drhodt = q2odefun(t, rho, rho_0, dx)
     % Flux limiter
     function Psi = Psi(R_i)
-        if strcmp(flux_scheme, 'minmod')
+        if strcmp(flux_scheme, 'none')
+            Psi = 1;
+        elseif strcmp(flux_scheme, 'minmod')
             Psi = max(0, min(R_i, 1));
         elseif strcmp(flux_scheme, 'superbee')
             Psi = max([0, min(2*R_i, 1), min(R_i, 2)]);
@@ -96,9 +93,6 @@ function drhodt = q2odefun(t, rho, rho_0, dx)
         F_iph(j) = F(rho_plus(j), rho_minus(j+1));
     end
     
-%     rho = rho(2:end);
-%     rho_minus = rho_minus(2:end);
-%     rho_plus = rho_plus(2:end);
     % Discard ghost point values so we end up with a (N+1)-vector again.
     F_iph = F_iph(2:end-1);
     F_imh = F_imh(2:end-1);        
