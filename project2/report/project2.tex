@@ -129,9 +129,8 @@ For the Gudonov scheme we will show that we can solve the Riemann problem exactl
   \frac{df}{d\rho} = v_\mathrm{max} \left( 1 - \frac{3\rho^2}{\rho_\mathrm{max}^2} \right) = 0 \quad \implies \quad \rho = \frac{\rho_\mathrm{max}}{\sqrt{3}}
 \end{equation*}
 
-Focusing on the case when $\rho_i < \rho_{i+1}$ first, we are interested in finding the minimum of $f(\rho)$. If 
-
-\begin{equation}
+Focusing on the case when $\rho_i < \rho_{i+1}$ first, we are interested in finding the minimum of $f(\rho)$ over the interval $[\rho_i, \rho_{i+1}]$. If $\rho_i < \rho_{i+1} \le \rho_\mathrm{max}/\sqrt{3}$ then the minimum must be attained on the left endpoint, and is $f(\rho_i)$. On the other side of the maximum, if $\rho_\mathrm{max}/\sqrt{3} \le \rho_i < \rho_{i+1}$, then the minimum must be attained on the right endpoint, and is $f(\rho_{i+1})$. If the interval contains the maximum within it, then the minimum must be attained at one of the endpoints, and both must be checked. Thus we can analytically evaluate the minimum as
+\begin{equation} \label{eq:min_f}
 \min_{\rho \in \left[\rho_i, \rho_{i+1}\right]} f(\rho) =
 \begin{cases}
   f(\rho_i),&
@@ -142,8 +141,8 @@ Focusing on the case when $\rho_i < \rho_{i+1}$ first, we are interested in find
     \text{if } \rho_i < \frac{\rho_\mathrm{max}}{\sqrt{3}} < \rho_{i+1}
 \end{cases}
 \end{equation}
-
-\begin{equation}
+The maximum can be evaluated analytically following a very similar argument for the case when $\rho_{i+1} < \rho_i$.  If $\rho_{i+1} < \rho_i \le \rho_\mathrm{max}/\sqrt{3}$ then the maximum must be attained on the right endpoint, and is $f(\rho_i)$. If $\rho_\mathrm{max}/\sqrt{3} \le \rho_{i+1} < \rho_i$, then the maximum must be attained on the left endpoint, and is $f(\rho_{i+1})$. If the interval contains the maximum within it, then we simply evaluate $f(\rho_\mathrm{max}/\sqrt{3})$ to obtain the global maximum. All together, the maximum can be expressed analytically as
+\begin{equation} \label{eq:max_f}
 \max_{\rho \in \left[\rho_i, \rho_{i+1}\right]} f(\rho) =
 \begin{cases}
   f(\rho_i),&
