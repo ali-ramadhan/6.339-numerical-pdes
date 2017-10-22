@@ -28,8 +28,8 @@ qp = qpinitial;
 
 % Using ode45.
 y0 = [reshape(pp, [(N+1)*(M+1), 1]); reshape(qp, [(N+1)*(M+1), 1])];
-[t, y] = ode45(@(t,y) q4odefun(t, y, N, M, dx, dy, F), [0 nstep*dt], y0, odeset('Stats', 'on'));
+[t, y] = ode45(@(t,y) q4odefun(t, y, N, M, dx, dy, F), [0 nstep*dt], y0);
 
-x = repmat(linspace(0, L, N+1), M+1, 1);
-y = repmat(linspace(0, H, M+1)', 1, N+1);
+x = repmat(linspace(0, L, N+1), M+1, 1)';
+y = repmat(linspace(0, H, M+1)', 1, N+1)';
 end
