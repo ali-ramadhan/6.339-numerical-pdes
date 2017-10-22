@@ -1,0 +1,66 @@
+\documentclass[11pt]{article}
+
+\usepackage[letterpaper]{geometry}
+%\usepackage[letterpaper,left=2.5cm,top=2cm,right=2.5cm,bottom=2cm]{geometry}
+
+\usepackage[utf8]{inputenc}
+\usepackage{mathpazo}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{siunitx}
+\usepackage{cancel}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{empheq}
+\usepackage[most]{tcolorbox}
+
+\newtcbox{\mymath}[1][]{%
+  nobeforeafter, math upper, tcbox raise base,
+  enhanced, colframe=black!30!black,
+  colback=yellow!30, boxrule=1pt,
+  #1}
+
+% Hyperlinks with decent looking default colors.
+\usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{
+  colorlinks,
+  linkcolor={red!50!black},
+  citecolor={blue!50!black},
+  urlcolor={blue!80!black}
+}
+
+% For those sexy spaced low small caps from classic-thesis!
+\usepackage{microtype}
+\usepackage{textcase}
+\DeclareRobustCommand{\spacedlowsmallcaps}[1]{%
+  \textls[80]{\scshape\MakeTextLowercase{#1}}%
+}
+
+% Replaced mathpazo \sum symbol with computer modern's.
+\DeclareSymbolFont{cmlargesymbols}{OMX}{cmex}{m}{n}
+\let\sumop\relax
+\DeclareMathSymbol{\sumop}{\mathop}{cmlargesymbols}{"50}
+
+\newcommand{\forceindent}{\leavevmode{\parindent=1em\indent}}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy} 
+\fancyhead{}
+\rhead{Ali Ramadhan}
+\lhead{6.339 Project 3---Finite Element Methods}
+\cfoot{\thepage}
+
+\title{\spacedlowsmallcaps{6.339: Numerical Methods for Partial Differential Equations}\\ \spacedlowsmallcaps{Project three: Finite Element Methods}}
+\author{Ali Ramadhan$^\text{†}$ (\texttt{alir@mit.edu})}
+\date{\textit{$^\text{†}$Department of Earth, Atmospheric, and Planetary Sciences}}
+
+\renewcommand\thesubsection{\thesection(\alph{subsection})}
+
+\begin{document}
+\maketitle
+
+In this project, we will utilize finite volume methods to study dense traffic flow and traffic jams modeled as shockwaves. We model traffic in each lane by a scalar hyperbolic conservation law, following what is known as the Lighthill-Whitman-Richards model.
+
+\end{document}
