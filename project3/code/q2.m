@@ -10,4 +10,13 @@ function q2()
                    + f(1/sqrt(3), -1/sqrt(3)) + f(1/sqrt(3), 1/sqrt(3));
     end
 
+g_ij = {@(x,y) (1+x)*(1+y)/4, @(x,y) (1+x)*(1-y)/4;  % g_--, g_-+
+        @(x,y) (1-x)*(1+y)/4, @(x,y) (1-x)*(1-y)/4}; % g_+-, g_++
+
+dg_ijdx = {@(x,y) (1+y)/4,  @(x,y) (1-y)/4;   % dg_--/dx, dg_-+/dx
+           @(x,y) -(1+y)/4, @(x,y) -(1-y)/4}; % dg_+-/dx, dg_++/dx
+
+dg_ijdy = {@(x,y) (1+x)/4, @(x,y) -(1+x)/4;  % dg_--/dy, dg_-+/dy
+           @(x,y) (1-x)/4, @(x,y) -(1-x)/4}; % dg_+-/dy, dg_++/dy
+
 end
