@@ -67,6 +67,16 @@
 \begin{document}
 \maketitle
 
-In this project, we will utilize finite volume methods to study dense traffic flow and traffic jams modeled as shockwaves. We model traffic in each lane by a scalar hyperbolic conservation law, following what is known as the Lighthill-Whitman-Richards model.
+In this project, we will utilize finite element methods to study the deflection or bending of beams by solving the linear elasticity equation. It assumes that the strains and deformations are small, thus yielding a linear relationship between the stress and strain components. In its most general form, it can be expressed using Newton's second law
+\begin{equation} \label{eq:linElasGen}
+  \bm{\nabla\cdot\sigma + f} = \rho\ddot{\bm{u}}
+\end{equation}
+where $\bm{\sigma}$ is the \emph{Cauchy-stress tensor}, $\bm{f}$ is the body force per unit volume, $\rho$ is the mass density, and $\ddot{\bm{u}}$ is the second time derivative of the deformation vector $\bm{u}$. The Cauchy-stress tensor is a second-order or rank-2 tensor. Its diagonal components $\sigma_{kk}$ represent the normal stresses while the off-diagonal components $\sigma_{ij} \; (i \ne j)$  represent the shear stresses at a point. The $\sigma_{ij}$ component corresponds to the stress acting on a plane normal to the $x_i$-axis in the direction of the $x_j$-axis.
+
+In two dimensions Eq. \eqref{eq:linElasGen} can be expanded and written as
+\begin{equation} \label{eq:linElas}
+  \p{\bm{\sigma}_x(\bm{u})}{x} + \p{\bm{\sigma}_y(\bm{u})}{y} + \bm{f} = 0
+\end{equation}
+where $\bm{u} = (u_x, u_y)$, $\bm{\sigma}_x = (\sigma_{xx}, \sigma_{xy})$ and $\bm{\sigma}_y = (\sigma_{yx}, \sigma_{yy})$ are the stress vector fields, and $\bm{f} = (f_x, f_y)$. We are interested in studying the bending of a beam under equilibrium, that is when all the forces on the beam sum to zero and thus the deformation is time-independent. In this elastostatic regime, $\ddot{\bm{u}} = 0$ and thus we are left with a set of time-independent partial differential equations.
 
 \end{document}
