@@ -59,7 +59,7 @@
 \cfoot{\thepage}
 
 \title{\spacedlowsmallcaps{6.339: Numerical Methods for Partial Differential Equations}\\ \spacedlowsmallcaps{Project three: Finite Element Methods}}
-\author{Ali Ramadhan$^\text{†}$ (\texttt{alir@mit.edu})}
+\author{Ali Ramadhan$^\text{†}$ (\href{mailto:alir@mit.edu}{\texttt{alir@mit.edu}})}
 \date{\textit{$^\text{†}$Department of Earth, Atmospheric, and Planetary Sciences}}
 
 \renewcommand\thesubsection{\thesection(\alph{subsection})}
@@ -67,16 +67,60 @@
 \begin{document}
 \maketitle
 
-In this project, we will utilize finite element methods to study the deflection or bending of beams by solving the linear elasticity equation. It assumes that the strains and deformations are small, thus yielding a linear relationship between the stress and strain components. In its most general form, it can be expressed using Newton's second law
-\begin{equation} \label{eq:linElasGen}
+In this project, we will utilize finite element methods to study the deflection or bending of beams by solving the linear elasticity equation. It assumes that the strains and deformations are small, thus yielding a linear relationship between the stress and strain components.\footnotemark~In its most general form, it can be expressed as a balance of linear momentum using Newton's second law
+\begin{equation*} \label{eq:linElasGen}
   \bm{\nabla\cdot\sigma + f} = \rho\ddot{\bm{u}}
-\end{equation}
+\end{equation*}
 where $\bm{\sigma}$ is the \emph{Cauchy-stress tensor}, $\bm{f}$ is the body force per unit volume, $\rho$ is the mass density, and $\ddot{\bm{u}}$ is the second time derivative of the deformation vector $\bm{u}$. The Cauchy-stress tensor is a second-order or rank-2 tensor. Its diagonal components $\sigma_{kk}$ represent the normal stresses while the off-diagonal components $\sigma_{ij} \; (i \ne j)$  represent the shear stresses at a point. The $\sigma_{ij}$ component corresponds to the stress acting on a plane normal to the $x_i$-axis in the direction of the $x_j$-axis.
 
-In two dimensions Eq. \eqref{eq:linElasGen} can be expanded and written as
+\footnotetext{The more general theory of nonlinear elasticity, or finite strain theory, can be used to model arbitrarily large strains and rotations as well as nonlinear stress-strain relations involving effects such as buckling, yielding, and plasticity.}
+
+In two dimensions the linear elasticity equation can be expanded and written as
 \begin{equation} \label{eq:linElas}
   \p{\bm{\sigma}_x(\bm{u})}{x} + \p{\bm{\sigma}_y(\bm{u})}{y} + \bm{f} = 0
 \end{equation}
-where $\bm{u} = (u_x, u_y)$, $\bm{\sigma}_x = (\sigma_{xx}, \sigma_{xy})$ and $\bm{\sigma}_y = (\sigma_{yx}, \sigma_{yy})$ are the stress vector fields, and $\bm{f} = (f_x, f_y)$. We are interested in studying the bending of a beam under equilibrium, that is when all the forces on the beam sum to zero and thus the deformation is time-independent. In this elastostatic regime, $\ddot{\bm{u}} = 0$ and thus we are left with a set of time-independent partial differential equations.
+where $\bm{u} = (u_x, u_y)$, $\bm{\sigma}_x = (\sigma_{xx}, \sigma_{xy})$ and $\bm{\sigma}_y = (\sigma_{yx}, \sigma_{yy})$ are the stress vector fields, and $\bm{f} = (f_x, f_y)$. We are interested in studying the bending of a beam under equilibrium, that is when all the forces on the beam sum to zero and thus the displacement is time-independent. In this elastostatic regime $\ddot{\bm{u}} = 0$ and thus we are left with a set of time-independent partial differential equations.
+
+In order to solve for the displacement field $\bm{u}(x,y)$, we require more information to relate the components of the stress tensor $\sigma_{ij}(x,y)$ to the displacements $u_x(x,y)$ and $u_y(x,y)$. This information comes in the form of a set of strain-displacement relations and a constitutive relation. In their most general form, the strain-displacement relation can be expressed as
+\begin{equation*}
+  \bm{\varepsilon} =\frac{1}{2} \left[ \bm{\nabla u} + (\bm{\nabla u})^T \right]
+\end{equation*}
+while the constitutive relation is \emph{Hooke's Law}, $\bm{\sigma} = \bm{C : \varepsilon}$ where $\bm{\varepsilon}$ is the \emph{infinitesimal strain tensor} and $\bm{C}$ is the rank-4 \emph{stiffness tensor}. $\bm{M}^T$ represents the transpose of the matrix $\bm{M}$ and $\bm{A:B} = A_{ij}B_{ij}$ is the inner product for rank-2 tensors where summation over repeated indices is implied as per the \emph{Einstein summation convention}, or rather a small borrowing from the notation of Ricci calculus if you prefer.
+
+In our case we are given the strain-displacement relations and the constitutive relation together, directly relating the stresses to the displacements by the matrix equation
+\begin{equation}
+\begin{pmatrix}
+  \sigma_{xx} \\
+  \sigma_{xy} \\
+  \sigma_{yx} \\
+  \sigma_{yy}
+\end{pmatrix}
+=
+\frac{E}{1-\nu^2}
+\begin{pmatrix}
+  1 & 0 & 0 & \nu \\
+  0 & \frac{1-\nu}{2} & \frac{1-\nu}{2} & 0 \\
+  0 & \frac{1-\nu}{2} & \frac{1-\nu}{2} & 0 \\
+  \nu & 0 & 0 & 1
+\end{pmatrix}
+\begin{pmatrix}
+\p{u_x}{x} \\
+\p{u_x}{y} \\
+\p{u_y}{x} \\
+\p{u_y}{y}
+\end{pmatrix}
+\end{equation}
+where $E$ is the \emph{Young's modulus} and $\nu$ the \emph{Poisson ratio} of the material.
+
+\begin{gather}
+  \sigma_{xx} = \frac{E}{1-\nu^2} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right) \nonumber \\
+  \sigma_{yy} = \frac{E}{1-\nu^2} \left( \nu\p{u_x}{x} + \p{u_y}{y} \right) \\
+  \sigma_{xy} = \frac{E}{1-\nu^2} \left( \frac{1-\nu}{2} \right) \left(\p{u_x}{y} + \p{u_y}{x} \right) \nonumber
+\end{gather}
+
+\section{Mathematical foundations}
+Before we can develop a solution method or numerical scheme utilizing the finite element method, we must first express the partial differential equations in a \emph{weak formulation} admitting \emph{weak solutions} that may not be sufficiently differentiable to satisfy the strong formulation yet satisfy the weak formulation and represent physically realizable solutions. It so happens that for the linear elasticity equation, the weak and strong formulations are equivalent.
+
+\subsection{Derivation of the weak form of the linear elasticity equation}
 
 \end{document}
