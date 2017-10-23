@@ -1,20 +1,21 @@
 \documentclass[11pt]{article}
-
-\usepackage[letterpaper]{geometry}
-%\usepackage[letterpaper,left=2.5cm,top=2cm,right=2.5cm,bottom=2cm]{geometry}
-
+\usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{mathpazo}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{siunitx}
-\usepackage{cancel}
+\usepackage[letterpaper]{geometry}
 
 \usepackage{graphicx}
+\usepackage{mathpazo}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage{siunitx}
+\usepackage{cancel}
 \usepackage{float}
 \usepackage{empheq}
 \usepackage[most]{tcolorbox}
 
+% Sexy yellow highlighted boxed equations!
 \newtcbox{\mymath}[1][]{%
   nobeforeafter, math upper, tcbox raise base,
   enhanced, colframe=black!30!black,
@@ -43,8 +44,13 @@
 \let\sumop\relax
 \DeclareMathSymbol{\sumop}{\mathop}{cmlargesymbols}{"50}
 
+% Force indent command.
 \newcommand{\forceindent}{\leavevmode{\parindent=1em\indent}}
 
+% Math shortcuts.
+\newcommand\p[2]{\frac{\partial #1}{\partial #2}}
+
+% fancyhdr header and footer.
 \usepackage{fancyhdr}
 \pagestyle{fancy} 
 \fancyhead{}
