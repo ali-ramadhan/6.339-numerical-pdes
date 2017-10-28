@@ -79,7 +79,7 @@ In two dimensions the linear elasticity equation can be expanded and written as
 \begin{equation} \label{eq:linElas}
   \p{\bm{\sigma}_x(\bm{u})}{x} + \p{\bm{\sigma}_y(\bm{u})}{y} + \bm{f} = 0
 \end{equation}
-where $\bm{u} = (u_x, u_y)$, $\bm{\sigma}_x = (\sigma_{xx}, \sigma_{xy})$ and $\bm{\sigma}_y = (\sigma_{yx}, \sigma_{yy})$ are the stress vector fields, and $\bm{f} = (f_x, f_y)$. We are interested in studying the bending of a beam under equilibrium, that is when all the forces on the beam sum to zero and thus the displacement is time-independent. In this elastostatic regime $\ddot{\bm{u}} = 0$ and thus we are left with a set of time-independent partial differential equations.
+where $\bm{u} = (u_x, u_y)$, $\bm{\sigma}_x = (\sigma_{xx}, \sigma_{xy})$ and $\bm{\sigma}_y = (\sigma_{yx}, \sigma_{yy})$ are the stress vector fields, and $\bm{f} = (f_x, f_y)$, all of which are multivariate functions of $x$ and $y$. We are interested in studying the bending of a beam under equilibrium, that is when all the forces on the beam sum to zero and thus the displacement is time-independent. In this elastostatic regime $\ddot{\bm{u}} = 0$ and thus we are left with a set of time-independent partial differential equations.
 
 In order to solve for the displacement field $\bm{u}(x,y)$, we require more information to relate the components of the stress tensor $\sigma_{ij}(x,y)$ to the displacements $u_x(x,y)$ and $u_y(x,y)$. This information comes in the form of a set of strain-displacement relations and a constitutive relation. In their most general form, the strain-displacement relation can be expressed as
 \begin{equation*}
@@ -119,8 +119,34 @@ where $E$ is the \emph{Young's modulus} and $\nu$ the \emph{Poisson ratio} of th
 \end{gather}
 
 \section{Mathematical foundations}
-Before we can develop a solution method or numerical scheme utilizing the finite element method, we must first express the partial differential equations in a \emph{weak formulation} admitting \emph{weak solutions} that may not be sufficiently differentiable to satisfy the strong formulation yet satisfy the weak formulation and represent physically realizable solutions. It so happens that for the linear elasticity equation, the weak and strong formulations are equivalent.
+Before we can develop a solution method or numerical scheme utilizing the finite element method, we will first express the partial differential equations in a \emph{weak formulation} admitting \emph{weak solutions} that may not be sufficiently differentiable to satisfy the strong formulation yet satisfy the weak formulation and represent physically realizable solutions. For the linear elasticity equation in particular, it so happens that the weak and strong formulations are actually equivalent.
 
 \subsection{Derivation of the weak form of the linear elasticity equation}
+Expanding the linear elasticity equation \eqref{eq:linElas} yields two partial differential equations
+\begin{subequations}
+\begin{gather}
+  \p{\sigma_{xx}}{x} + \p{\sigma_{xy}}{y} + f_x = 0 \\
+  \p{\sigma_{yx}}{x} + \p{\sigma_{yy}}{y} + f_y = 0
+\end{gather}
+\end{subequations}
+which we can write more compactly as
+\begin{equation} \label{eq:linElasij}
+  \p{\sigma_{ij}}{x} + f_j = 0, \quad j=1,2
+\end{equation}
+where summation over the repeated index $i=1,2$ is implied as per the Einstein summation convention. The subscript 1 corresponds to the $x$ coordinate while $2$ corresponds to the $y$ coordinate.
+
+We will now multiply \eqref{eq:linElasij} by a \emph{test function} $\bm{g} = (g_1,g_2)$ and integrate over the domain of the problem $\Omega$
+\begin{equation}
+  \iint_\Omega g_k(x,y) \left( \p{\sigma_{ij}}{x} + f_j \right) \, d\Omega = 0
+\end{equation}
+We note that $\bm{g} \in \mathcal{X}$ where $\mathcal{X}$ is a Sobolev space. In particular, $\mathcal{X} = H^1_\Omega$, the Hilbert space of once-differentiable functions.
+
+\begin{equation}
+\iint_\Omega g_k \p{\sigma_{ij}}{x} \, d\Omega + \iint_\Omega g_k f_j \, d\Omega = 0
+\end{equation}
+
+\begin{equation}
+\iint_\Omega g_k \left( \bm{\nabla \cdot \sigma_j} \right) \, d\Omega + \iint_\Omega g_k f_j \, d\Omega = 0
+\end{equation}
 
 \end{document}
