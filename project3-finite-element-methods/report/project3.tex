@@ -14,6 +14,7 @@
 \usepackage{float}
 \usepackage{empheq}
 \usepackage[most]{tcolorbox}
+% \usepackage{breqn}
 
 % Sexy yellow highlighted boxed equations!
 \newtcbox{\mymath}[1][]{%
@@ -145,8 +146,66 @@ We note that $\bm{g} \in \mathcal{X}$ where $\mathcal{X}$ is a Sobolev space. In
 \iint_\Omega g_k \p{\sigma_{ij}}{x} \, d\Omega + \iint_\Omega g_k f_j \, d\Omega = 0
 \end{equation}
 
+Noticing that the first term is a divergence of $\bm{\sigma}_j$ we can write
 \begin{equation}
 \iint_\Omega g_k \left( \bm{\nabla \cdot \sigma_j} \right) \, d\Omega + \iint_\Omega g_k f_j \, d\Omega = 0
 \end{equation}
+Now we make use of Green's theorem to rewrite the first term as
+\begin{equation}
+  \iint_\Omega g_k \left( \bm{\nabla \cdot \sigma_j} \right) \, d\Omega
+  = \int_{\partial\Omega} g_k  \left( \bm{\sigma_j \cdot n} \right) \, d\ell
+  - \iint_\Omega \nabla g_k \cdot \bm{\sigma_j} \, d\Omega
+\end{equation}
+so that we get
+\begin{equation}
+  \int_{\partial\Omega} g_k  \left( \bm{\sigma_j \cdot n} \right) \, d\ell
+  - \iint_\Omega \nabla g_k \cdot \bm{\sigma_j} \, d\Omega
+  + \iint_\Omega g_k f_j \, d\Omega = 0
+\end{equation}
+
+Adding the two equations together
+\begin{equation}
+    \int_{\partial\Omega} \left( \bm{\sigma}_x n_x + \bm{\sigma}_y n_y \right) \, d\ell
+  - \iint_\Omega \left( \nabla g_x \cdot \bm{\sigma_x} + \nabla g_y \cdot \bm{\sigma_y} \right) \, d\Omega
+  + \iint_\Omega \left( g_x f_x + g_y f_y \right) \, d\Omega = 0
+\end{equation}
+where the first term goes to zero because of the free boundary condition  $\bm{\sigma}_x n_x + \bm{\sigma}_y n_y = 0$. Expanding and rearranging we get
+\begin{equation}
+  \iint_\Omega \left( \p{g_x}{x}\sigma_{xx} + \p{g_x}{y}\sigma_{xy} + \p{g_y}{y}\sigma_{yx} + \p{g_y}{y}\sigma_{yy} \right) \, d\Omega = \iint_\Omega \left( g_x f_x + g_y f_y \right) \, d\Omega
+\end{equation}
+and plugging in we get
+\begin{multline}
+  \iint_\Omega \frac{E}{1-\nu^2} \left\{
+    \p{g_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
+    + \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{y} \right)
+      \left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
+    + \p{g_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
+  \right\} \, d\Omega
+  - \iint_\Omega \left( g_x f_x + g_y f_y \right) \, d\Omega
+  = 0
+\end{multline}
+and so we have our weak form
+\begin{equation}
+  a(\bm{u,g}) + \ell(\bm{g}) = 0 \quad \forall \bm{u,g} \in H^1_\Omega \times H^1_\Omega
+\end{equation}
+where
+\begin{multline}
+  a(\bm{u,g}) =
+  \iint_\Omega \frac{E}{1-\nu^2} \left\{
+    \p{g_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
+    + \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{y} \right)
+      \left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
+    + \p{g_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
+  \right\} \, d\Omega
+\end{multline}
+and
+\begin{equation}
+  \ell(\bm{g}) = - \iint_\Omega \left( g_x f_x + g_y f_y \right) \, d\Omega
+\end{equation}
+
+\subsubsection*{Proof for the symmetric and positive-definiteness of the weak form}
+
+\subsection{Discretization of the weak form}
+
 
 \end{document}
