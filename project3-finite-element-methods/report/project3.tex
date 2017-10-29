@@ -50,6 +50,7 @@
 
 % Math shortcuts.
 \newcommand\p[2]{\frac{\partial #1}{\partial #2}}
+\newcommand\G[6]{\p{g_{#1 #2}}{#5}\p{g_{#3 #4}}{#6}}
 
 % fancyhdr header and footer.
 \usepackage{fancyhdr}
@@ -206,6 +207,161 @@ and
 \subsubsection*{Proof for the symmetric and positive-definiteness of the weak form}
 
 \subsection{Discretization of the weak form}
+We will discretize the weak form over the unit square $\Omega = [-1,1]\times[-1,1]$. We'll begin by expressing our variables of interest $\bm{u}$ and test functions $\bm{g}$ in terms of a set of bilinear basis functions
+\begin{gather}
+g_{--}(x,y) = \frac{(1+x)(1+y)}{4}, \quad g_{-+}(x,y) = \frac{(1+x)(1-y)}{4}\\
+g_{+-}(x,y) = \frac{(1-x)(1+y)}{4}, \quad g_{++}(x,y) = \frac{(1-x)(1-y)}{4}
+\end{gather}
+As we are expressing both $\bm{u}$ and $\bm{g}$ in terms of the same basis functions, we are in effect employing a \emph{Galerkin method}, which is simplified when dealing with a symmetric and positive-definite bilinear weak form $a(\bm{u,g})$.
 
+This allows us to express, for example, $u_x(x,y)$ as a linear combination of the basis functions
+\begin{equation}
+  u_x(x,y) = a_{ij}g_{ij}(x,y) \equiv \sumop_{i,j \in \{-,+\}} a_{ij}g_{ij}(x,y)
+\end{equation}
+where summation over repeated indices is now implied. Doing this for $\bm{u}$ and $\bm{g}$ we will write
+\begin{equation}
+\begin{gathered}
+  u_x(x,y) = a_{ij}g_{ij}(x,y), \quad u_y(x,y) = b_{ij}g_{ij}(x,y) \\
+  g_x(x,y) = c_{ij}g_{ij}(x,y), \quad g_y(x,y) = d_{ij}g_{ij}(x,y)
+\end{gathered}
+\end{equation}
+
+Plugging these into the weak form, we get
+\begin{multline}
+  a(\bm{u},\bm{g}) = \frac{E}{1-\nu^2} \iint_\Omega \left\{
+    c_{ij}\p{g_{ij}}{x} \left(
+      a_{kl}\p{g_{kl}}{x}
+      + \nu b_{kl}\p{g_{kl}}{y}
+    \right) \right. \\ \left.
+  + \frac{1-\nu}{2} \left(
+    c_{ij}\p{g_{ij}}{y}
+    + d_{ij}\p{g_{ij}}{x}
+  \right)
+  \left(
+    a_{kl}\p{g_{kl}}{y}
+     + b_{kl}\p{g_{kl}}{x}
+   \right) \right. \\ \left.
+  + d_{ij}\p{g_{ij}}{y} \left(
+    \nu a_{kl}\p{g_{kl}}{x}
+    + b_{kl}\p{g_{kl}}{y}
+  \right)
+\right\} \, d\Omega
+\end{multline}
+and
+\begin{equation}
+  \ell(\bm{g}) = -\iint_\Omega \left( c_{ij}g_{ij}f_x + d_{ij}g_{ij} f_y \right) \, d\Omega
+\end{equation}
+
+Expanding out the full weak form and factoring out the $c_{ij}$ and $d_{ij}$ coefficients we get
+\begin{multline}
+  \alpha \iint_\Omega \left\{
+    c_{ij} \left[
+      a_{kl}\G{i}{j}{k}{l}{x}{x} + \nu b_{kl}\G{i}{j}{k}{l}{x}{y}
+      + \beta a_{kl}\G{i}{j}{k}{l}{y}{y} + \beta b_{kl}\G{i}{j}{k}{l}{y}{x}
+      - \frac{1}{\alpha}g_{ij}f_x
+    \right] \right. \\ \left.
+    + d_{ij} \left[
+      \beta a_{kl}\G{i}{j}{k}{l}{x}{y} + \beta b_{kl}\G{i}{j}{k}{l}{x}{x}
+      + \nu a_{kl}\G{i}{j}{k}{l}{y}{x} + b_{kl}\G{i}{j}{k}{l}{y}{y}
+      - \frac{1}{\alpha}g_{ij}f_y
+    \right]
+  \right\} \, d\Omega = 0
+\end{multline}
+where
+\begin{equation}
+  \alpha = \frac{E}{1-\nu^2}, \quad \beta = \frac{1-\nu}{2}
+\end{equation}
+
+Noticing that every term is integrated over $\Omega$ and contains a very similar pattern, we will introduce a new rank-6 tensor-like symbol
+\begin{equation}
+  G_{ijkl}^{mn} = \alpha \iint_\Omega \p{g_{ij}}{x_m} \p{g_{kl}}{x_n} d\Omega
+\end{equation}
+so that we can write
+\begin{multline}
+    c_{ij} \left[
+      a_{kl} G_{ijkl}^{xx} + \nu b_{kl} G_{ijkl}^{xy}
+      + \beta a_{kl} G_{ijkl}^{yy} + \beta b_{kl} G_{ijkl}^{yx}
+      - \iint_\Omega \frac{1}{\alpha}g_{ij}f_x \, d\Omega
+    \right] \\
+  + d_{ij} \left[
+    \beta a_{kl} G_{ijkl}^{xy} + \beta b_{kl} G_{ijkl}^{xx}
+    + \nu a_{kl} G_{ijkl}^{yx} + b_{kl} G_{ijkl}^{yy}
+    - \iint_\Omega \frac{1}{\alpha}g_{ij}f_y \, d\Omega
+  \right] = 0
+\end{multline}
+
+However, $c_{ij}$ and $d_{ij}$ are the linear combination coefficients of the arbitrary test function $\bm{g}$. As this function must hold for all $\bm{g} \in H^1_\Omega$, it must also hold for all $c_{ij}$ and $d_{ij}$ and thus the terms inside the square brackets must vanish. This finally yields a set of 8 linear equations for the 8 coefficients $a_{ij}$ and $b_{ij}$ we desire to solve in order to find $u_x(x,y)$ and $u_y(x,y)$ in terms of the bilinear basis functions $g_{ij}(x,y)$
+\begin{subequations}
+\begin{gather}
+  a_{kl} \left( G_{ijkl}^{xx} + \beta G_{ijkl}^{yy} \right)
+    + b_{kl} \left( \nu G_{ijkl}^{xy} + \beta b_{kl} G_{ijkl}^{yx} \right)
+    = \iint_\Omega \frac{1}{\alpha}g_{ij}f_x \, d\Omega \\
+  a_{kl} \left( \beta G_{ijkl}^{xy} + \nu G_{ijkl}^{yx} \right)
+    + b_{kl} \left( \beta G_{ijkl}^{xx} + G_{ijkl}^{yy} \right)
+    = \iint_\Omega \frac{1}{\alpha}g_{ij}f_y \, d\Omega
+\end{gather}
+\end{subequations}
+Recall that summation over $k,l \in \{-,+\}$ is implied and that we get an equation for each $i,j \in \{-,+\}$ which index the equations. For example, expanding the first equation for $i=-,j=-$ yields one of the eight linear equations for $a_{ij}$ and $b_{ij}$
+\begin{equation}
+\begin{aligned}
+  & a_{--} \left( G_{----}^{xx} + \beta G_{----}^{yy} \right)
+  + b_{--} \left( \nu G_{----}^{xy} + \beta G_{----}^{yx} \right) \\
+  + \, & a_{-+} \left( G_{---+}^{xx} + \beta G_{---+}^{yy} \right)
+  + b_{-+} \left( \nu G_{---+}^{xy} + \beta G_{---+}^{yx} \right) \\
+  + \, & a_{+-} \left( G_{--+-}^{xx} + \beta G_{--+-}^{yy} \right)
+  + b_{+-} \left( \nu G_{--+-}^{xy} + \beta G_{--+-}^{yx} \right)  \\
+  + \, & a_{++} \left( G_{--++}^{xx} + \beta G_{--++}^{yy} \right)
+  + b_{++} \left( \nu G_{--++}^{xy} + \beta G_{--++}^{yx} \right)
+  = \frac{1}{\alpha} \iint_\Omega g_{--}f_x \, d\Omega
+\end{aligned}
+\end{equation}
+
+We will now write this system of linear equations in the matrix form
+\begin{equation}
+\mathcal{M}\bm{a} = \bm{b}
+\end{equation}
+where
+\begin{equation}
+  \bm{a} =
+    \begin{pmatrix}
+      a_{--} \\
+      b_{--} \\
+      a_{-+} \\
+      b_{-+} \\
+      \cdots \\
+      b_{++}
+    \end{pmatrix}
+  , \quad
+  \bm{b} = \frac{1}{\alpha} \iint_\Omega
+    \begin{pmatrix}
+      g_{--}f_x \\
+      g_{--}f_y \\
+      g_{-+}f_x \\
+      g_{-+}f_y \\
+      \cdots \\
+      g_{++}f_y
+    \end{pmatrix}  
+  \, d\Omega
+\end{equation}
+so that we may solve for the coefficients $\bm{a}$ like $\bm{a} = \mathcal{M}^{-1}\bm{b}$. With 8 equations for 8 unknowns and an inhomogenous right hand side, we have a full $8\times8$ matrix $\mathcal{M}$ but patterns can be found. The reason we ordered the coefficients in $\bm{a}$ as $a_{--}, b_{--}, a_{-+}, b_{-+}, \cdots, b_{++}$ was so that each $2\times2$ block in $\mathcal{M}$ takes on the form
+\begin{equation}
+  B_{\gamma\delta} =
+  \begin{pmatrix}
+    G_{\gamma\delta}^{xx} + \beta G_{\gamma\delta}^{yy}
+      & \nu G_{\gamma\delta}^{xy} + \beta b_{kl} G_{\gamma\delta}^{yx} \\
+    \beta G_{\gamma\delta}^{xy} + \nu G_{\gamma\delta}^{yx}
+      & \beta G_{\gamma\delta}^{xx} + G_{\gamma\delta}^{yy}
+    \end{pmatrix}
+\end{equation}
+where $\gamma,\delta \in \{(-,-), (-,+), (+,-), (+,+) \}$ index each $2\times2$ block. Thus, $\mathcal{M}$ can be expressed as
+\begin{equation}
+  \mathcal{M} =
+  \begin{pmatrix}
+    B_{--,--} & B_{--,-+} & B_{--,+-} & B_{--,++} \\
+    B_{-+,--} & B_{-+,-+} & B_{-+,+-} & B_{-+,++} \\
+    B_{+-,--} & B_{+-,-+} & B_{+-,+-} & B_{+-,++} \\
+    B_{++,--} & B_{++,-+} & B_{++,+-} & B_{++,++}
+  \end{pmatrix}
+\end{equation}
 
 \end{document}
