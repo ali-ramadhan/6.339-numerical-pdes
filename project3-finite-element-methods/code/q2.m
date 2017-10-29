@@ -23,15 +23,15 @@ dg_ijdy = {@(x,y) (1+x)/4, @(x,y) -(1+x)/4;  % dg_--/dy, dg_-+/dy
            @(x,y) (1-x)/4, @(x,y) -(1-x)/4}; % dg_+-/dy, dg_++/dy
 
 M = zeros(8,8);
-% M = [B(1,1), B(1,2), B(1,3), B(1,4);
-%      B(2,1), B(2,2), B(2,3), B(2,4);
-%      B(3,1), B(3,2), B(3,3), B(3,4);
-%      B(4,1), B(4,2), B(4,3), B(4,4)];
-for gamma=1:4
-    for delta=1:4
-        M(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta);
-    end
-end
+M = [B(1,1), B(1,2), B(1,3), B(1,4);
+     B(2,1), B(2,2), B(2,3), B(2,4);
+     B(3,1), B(3,2), B(3,3), B(3,4);
+     B(4,1), B(4,2), B(4,3), B(4,4)];
+% for gamma=1:4
+%     for delta=1:4
+%         M(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta);
+%     end
+% end
 
 M
 det(M)
@@ -67,7 +67,38 @@ uy_xy = uy(x,y);
 % figure;
 % ux_xy(1,:)
 % uy_xy(1,:)
-plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
+% plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
+
+four2two = {[1,1], [1,2], [2,1], [2,2]};
+beta = (1-nu)/2;
+
+a = sym('a', [4 1]);
+b = sym('b', [4 1]);
+vars = [a; b];
+eqns = [];
+
+for gamma=1:4
+    [i,j] = deal(four2two{gamma}(1), four2two{gamma}(2));
+    eqnx = 0;
+    eqny = 0;
+    for delta=1:4
+        [k,l] = deal(four2two{delta}(1), four2two{delta}(2));
+        
+        eqnx = eqnx ...
+            + a(delta) * (G(i,j,k,l,'x','x') + beta*G(i,j,k,l,'y','y')) ...
+            + b(delta) * (nu*G(i,j,k,l,'x','y') + beta*G(i,j,k,l,'y','x'));
+        eqny = eqny ...
+            + a(delta) * (beta*G(i,j,k,l,'x','y') + nu*G(i,j,k,l,'y','x')) ...
+            + b(delta) * (beta*G(i,j,k,l,'x','x') + G(i,j,k,l,'y','y'));
+    end
+    g = g_ij{i,j};
+    b_RHS = -(F_delta/alpha) * g(1,0);
+    eqns = [eqns; eqnx == 0; eqny == b_RHS];
+end
+
+[MM, c] = equationsToMatrix(eqns, vars)
+det(MM)
+cond(MM)
 
 end
 
@@ -78,8 +109,8 @@ function integral = gauss_legendre_quadrature_2D(f)
 % known as Gauss-Legendre quadrature with two evaluation points for each spatial
 % dimension.
     
-integral = f(-1/sqrt(3), -1/sqrt(3)) + f(-1/sqrt(3), 1/sqrt(3)) ...
-           + f(1/sqrt(3), -1/sqrt(3)) + f(1/sqrt(3), 1/sqrt(3));
+    integral = f(-1/sqrt(3), -1/sqrt(3)) + f(-1/sqrt(3), 1/sqrt(3)) ...
+               + f(1/sqrt(3), -1/sqrt(3)) + f(1/sqrt(3), 1/sqrt(3));
 end
 
 function dg = dg(i,j,m)
@@ -88,48 +119,48 @@ function dg = dg(i,j,m)
 % corresponds to the - subscript, 2 to the + subscript. m can take on the string
 % values {'x','y'}.
 
-assert(i==1 || i==2, 'Invalid value for i, not 1 (-) or 2 (+)!')
-assert(j==1 || j==2, 'Invalid value for j, not 1 (-) or 2 (+)!')
-assert(m=='x' || m=='y', 'Invalid value for m, not ''x'' or ''y''!')
+    assert(i==1 || i==2, 'Invalid value for i, not 1 (-) or 2 (+)!')
+    assert(j==1 || j==2, 'Invalid value for j, not 1 (-) or 2 (+)!')
+    assert(m=='x' || m=='y', 'Invalid value for m, not ''x'' or ''y''!')
 
-global dg_ijdx dg_ijdy
+    global dg_ijdx dg_ijdy
 
-if m == 'x'
-    dg = dg_ijdx{i,j};
-elseif m == 'y'
-    dg = dg_ijdy{i,j};
-end
+    if m == 'x'
+        dg = dg_ijdx{i,j};
+    elseif m == 'y'
+        dg = dg_ijdy{i,j};
+    end
 end
 
 function G = G(i,j,k,l,m,n)
-assert(i==1 || i==2, 'Invalid value for i, not 1 (-) or 2 (+)!')
-assert(j==1 || j==2, 'Invalid value for j, not 1 (-) or 2 (+)!')
-assert(k==1 || k==2, 'Invalid value for k, not 1 (-) or 2 (+)!')
-assert(l==1 || l==2, 'Invalid value for l, not 1 (-) or 2 (+)!')
-assert(m=='x' || m=='y', 'Invalid value for m, not ''x'' or ''y''!')
-assert(n=='x' || n=='y', 'Invalid value for m, not ''x'' or ''y''!')
+    assert(i==1 || i==2, 'Invalid value for i, not 1 (-) or 2 (+)!')
+    assert(j==1 || j==2, 'Invalid value for j, not 1 (-) or 2 (+)!')
+    assert(k==1 || k==2, 'Invalid value for k, not 1 (-) or 2 (+)!')
+    assert(l==1 || l==2, 'Invalid value for l, not 1 (-) or 2 (+)!')
+    assert(m=='x' || m=='y', 'Invalid value for m, not ''x'' or ''y''!')
+    assert(n=='x' || n=='y', 'Invalid value for m, not ''x'' or ''y''!')
 
-global E nu
-alpha = E/(1-nu^2);
+    global E nu
+    alpha = E/(1-nu^2);
 
-dg1 = dg(i,j,m);
-dg2 = dg(k,l,n);
-integrand = @(x,y) alpha*dg1(x,y)*dg2(x,y);
-G = gauss_legendre_quadrature_2D(integrand);
+    dg1 = dg(i,j,m);
+    dg2 = dg(k,l,n);
+    integrand = @(x,y) alpha*dg1(x,y)*dg2(x,y);
+    G = gauss_legendre_quadrature_2D(integrand);
 end
 
 function B = B(gamma, delta)
-global nu
-beta = (1-nu)/2;
+    global nu
+    beta = (1-nu)/2;
 
-four2two = {[1,1], [1,2], [2,1], [2,2]};
-[i,j] = deal(four2two{gamma}(1), four2two{gamma}(2));
-[k,l] = deal(four2two{delta}(1), four2two{delta}(2));
+    four2two = {[1,1], [1,2], [2,1], [2,2]};
+    [i,j] = deal(four2two{gamma}(1), four2two{gamma}(2));
+    [k,l] = deal(four2two{delta}(1), four2two{delta}(2));
 
-B_11 = G(i,j,k,l,'x','x') + beta*G(i,j,k,l,'y','y');
-B_12 = nu*G(i,j,k,l,'x','y') + beta*G(i,j,k,l,'y','x');
-B_21 = beta*G(i,j,k,l,'x','y') + nu*G(i,j,k,l,'y','x');
-B_22 = beta*G(i,j,k,l,'x','x') + G(i,j,k,l,'y','y');
+    B_11 = G(i,j,k,l,'x','x') + beta*G(i,j,k,l,'y','y');
+    B_12 = nu*G(i,j,k,l,'x','y') + beta*G(i,j,k,l,'y','x');
+    B_21 = beta*G(i,j,k,l,'x','y') + nu*G(i,j,k,l,'y','x');
+    B_22 = beta*G(i,j,k,l,'x','x') + G(i,j,k,l,'y','y');
 
-B = [B_11, B_12; B_21, B_22];
+    B = [B_11, B_12; B_21, B_22];
 end
