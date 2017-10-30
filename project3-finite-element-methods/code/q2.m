@@ -1,4 +1,4 @@
-function q2()
+function [MM, bb] = q2()
 global E nu dg_ijdx dg_ijdy
 
 % Physical parameters
@@ -33,12 +33,9 @@ M = [B(1,1), B(1,2), B(1,3), B(1,4);
 %     end
 % end
 
-heatmap(M);
-
-M
 det(M)
 cond(M)
-M - M'
+figure; heatmap(M); title('M');
 
 F_delta = 8e4; % [N/m^2]
 alpha = E/(1-nu^2);
@@ -78,8 +75,9 @@ beta = (1-nu)/2;
 
 a = sym('a', [4 1]);
 b = sym('b', [4 1]);
-% vars = [a(1); b(1); a(2); b(2); a(3); b(3); a(4); b(4);];
 vars = [a(1); b(1); a(2); b(2); a(3); b(3); a(4); b(4);];
+a(1) = 0; a(3) = 0; b(1) = 0; b(3) = 0;
+% vars = [a; b];
 eqns = [];
 
 for gamma=1:4
@@ -97,26 +95,62 @@ for gamma=1:4
             + b(delta) * (beta*G(i,j,k,l,'x','x') + G(i,j,k,l,'y','y'));
     end
     g = g_ij{i,j};
-    b_RHS = -(F_delta/alpha) * g(1,0);
+    b_RHS = -F_delta * g(1,0);
     eqns = [eqns; eqnx == 0; eqny == b_RHS];
 end
 
-[MM, c] = equationsToMatrix(eqns, vars)
+[MM, bb] = equationsToMatrix(eqns, vars)
+
 det(MM)
 cond(MM)
 figure;
 heatmap(double(MM))
 M-double(MM)
-MM = double(MM); c = double(c);
-a = MM \ c
-ux = @(x,y) a(5).*g_ij{1,1}(x,y) + a(1).*g_ij{1,2}(x,y) + a(7).*g_ij{2,1}(x,y) + a(3).*g_ij{2,2}(x,y);
-uy = @(x,y) a(6).*g_ij{1,1}(x,y) + a(2).*g_ij{1,2}(x,y) + a(8).*g_ij{2,1}(x,y) + a(4).*g_ij{2,2}(x,y);
+
+MM = double(MM); bb = double(bb);
+a = MM \ bb
+
+% ux = @(x,y) a(3).*g_ij{1,1}(x,y) + a(7).*g_ij{1,2}(x,y) + a(1).*g_ij{2,1}(x,y) + a(5).*g_ij{2,2}(x,y);
+% uy = @(x,y) a(4).*g_ij{1,1}(x,y) + a(8).*g_ij{1,2}(x,y) + a(2).*g_ij{2,1}(x,y) + a(6).*g_ij{2,2}(x,y);
+ux = @(x,y) a(1).*g_ij{1,1}(x,y) + a(3).*g_ij{1,2}(x,y) + a(5).*g_ij{2,1}(x,y) + a(7).*g_ij{2,2}(x,y);
+uy = @(x,y) a(2).*g_ij{1,1}(x,y) + a(4).*g_ij{1,2}(x,y) + a(6).*g_ij{2,1}(x,y) + a(8).*g_ij{2,2}(x,y);
 x = repmat(linspace(-1,1,10),[10,1]);
 y = repmat(linspace(-1,1,10),[10,1]);
 ux_xy = ux(x,y);
 uy_xy = uy(x,y);
+
+% figure;
+% surf(x,y',ux_xy);
+% figure;
+% heatmap(ux_xy); title('ux');
+% figure;
+% heatmap(uy_xy); title('uy');
+% 
+% figure;
+% plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
+
+MMM = [MM(3:4,3:4) MM(3:4,7:8); MM(7:8,3:4) MM(7:8,7:8);]
+bbb = [bb(3:4); bb(7:8);]
+
+aaa = MMM \ bbb
+
+ux = @(x,y) aaa(1).*g_ij{1,1}(x,y) + aaa(3).*g_ij{1,2}(x,y);
+uy = @(x,y) aaa(2).*g_ij{1,1}(x,y) + aaa(4).*g_ij{1,2}(x,y);
+x = repmat(linspace(-1,1,10),[10,1]);
+y = repmat(linspace(-1,1,10),[10,1]);
+ux_xy = ux(x,y);
+uy_xy = uy(x,y);
+
+figure;
+surf(x,y',ux_xy);
+figure;
+heatmap(ux_xy); title('ux');
+figure;
+heatmap(uy_xy); title('uy');
+
 figure;
 plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
+legend('u_x', 'u_y')
 
 end
 
