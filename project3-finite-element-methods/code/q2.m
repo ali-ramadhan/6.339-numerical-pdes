@@ -33,9 +33,12 @@ M = [B(1,1), B(1,2), B(1,3), B(1,4);
 %     end
 % end
 
+heatmap(M);
+
 M
 det(M)
 cond(M)
+M - M'
 
 F_delta = 8e4; % [N/m^2]
 alpha = E/(1-nu^2);
@@ -69,12 +72,14 @@ uy_xy = uy(x,y);
 % uy_xy(1,:)
 % plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
 
-four2two = {[1,1], [1,2], [2,1], [2,2]};
+% four2two = {[1,1], [1,2], [2,1], [2,2]};
+four2two = {[2,1], [1,1], [2,2], [1,2]};
 beta = (1-nu)/2;
 
 a = sym('a', [4 1]);
 b = sym('b', [4 1]);
-vars = [a; b];
+% vars = [a(1); b(1); a(2); b(2); a(3); b(3); a(4); b(4);];
+vars = [a(1); b(1); a(2); b(2); a(3); b(3); a(4); b(4);];
 eqns = [];
 
 for gamma=1:4
@@ -99,6 +104,19 @@ end
 [MM, c] = equationsToMatrix(eqns, vars)
 det(MM)
 cond(MM)
+figure;
+heatmap(double(MM))
+M-double(MM)
+MM = double(MM); c = double(c);
+a = MM \ c
+ux = @(x,y) a(5).*g_ij{1,1}(x,y) + a(1).*g_ij{1,2}(x,y) + a(7).*g_ij{2,1}(x,y) + a(3).*g_ij{2,2}(x,y);
+uy = @(x,y) a(6).*g_ij{1,1}(x,y) + a(2).*g_ij{1,2}(x,y) + a(8).*g_ij{2,1}(x,y) + a(4).*g_ij{2,2}(x,y);
+x = repmat(linspace(-1,1,10),[10,1]);
+y = repmat(linspace(-1,1,10),[10,1]);
+ux_xy = ux(x,y);
+uy_xy = uy(x,y);
+figure;
+plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
 
 end
 
