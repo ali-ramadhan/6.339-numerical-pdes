@@ -7,7 +7,7 @@ E = 1.18e11; % Young's modulus for titanium Ti-6Al-2Nb-1Ta-0.8Mo [N/m^2]
 nu = 0.31;   % Poisson's ratio for Titanium Ti-6Al-2Nb-1Ta-0.8Mo
 alpha = E/(1-nu^2);
 beta = (1-nu)/2;
-% syms E nu alpha beta;
+% syms E nu alpha beta; % uncomment to calculate M analytically
 
 %% Function handles for the bilinear basis functions and their derivatives
 % Cell array with function handles for the four g_ij basis functions.
@@ -30,7 +30,7 @@ dg_ijdy = {@(x,y) (1+x)/4, @(x,y) -(1+x)/4;  % dg_--/dy, dg_-+/dy
 %% Problem 2(a): single element (unit square) beam under stress
 % Build M matrix block by block.
 M = zeros(8,8);
-% M = sym('M', [8 8]);
+% M = sym('M', [8 8]);  % uncomment to calculate M analytically
 for gamma=1:4
     for delta=1:4
         M(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta);
@@ -86,11 +86,11 @@ function integral = gauss_legendre_quadrature_2D(f, x1, x2, y1, y2)
 % is known as Gauss-Legendre quadrature with two quadrature points for each
 % spatial dimension as we only need to integrate bilinear functions.
     scaled_f = @(x,y) f((x2-x1)*x/2 + (x1+x2)/2, (y2-y1)*y/2 + (y1+y2)/2);
-    integral = (x2-x1)*(y2-y1)/4 ...
-               * (scaled_f(-1/sqrt(3), -1/sqrt(3)) ...
+    integral = (x2-x1)*(y2-y1)/4 * ...
+               ( scaled_f(-1/sqrt(3), -1/sqrt(3)) ...
                + scaled_f(-1/sqrt(3), 1/sqrt(3)) ...
                + scaled_f(1/sqrt(3), -1/sqrt(3)) ...
-               + f(1/sqrt(3), 1/sqrt(3)));
+               + f(1/sqrt(3), 1/sqrt(3)) );
 end
 
 %% Interface for looking up derivatives of the bilinear basis functions.
