@@ -6,7 +6,8 @@ global E nu alpha beta dg_ijdx dg_ijdy
 E = 1.18e11; % Young's modulus for titanium Ti-6Al-2Nb-1Ta-0.8Mo [N/m^2]
 nu = 0.31;   % Poisson's ratio for Titanium Ti-6Al-2Nb-1Ta-0.8Mo
 alpha = E/(1-nu^2);
-beta = (1-nu)/2; 
+beta = (1-nu)/2;
+% syms E nu alpha beta;
 
 %% Function handles for the bilinear basis functions and their derivatives
 % Cell array with function handles for the four g_ij basis functions.
@@ -29,6 +30,7 @@ dg_ijdy = {@(x,y) (1+x)/4, @(x,y) -(1+x)/4;  % dg_--/dy, dg_-+/dy
 %% Problem 2(a): single element
 % Build M matrix block by block.
 M = zeros(8,8);
+% M = sym('M', [8 8]);
 for gamma=1:4
     for delta=1:4
         M(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta);
@@ -72,9 +74,9 @@ surf(x, y', uy_xy); shading interp; colorbar; title('u_y(x,y)');
 figure;
 plot(x(end/2,:), ux_xy(end/2,:)', x(end/2,:), uy_xy(end/2,:)');
 legend('u_x(x,0)', 'u_y(x,0)');
-
 end
 
+%% Gauss-Legendre quadrature integration
 function integral = gauss_legendre_quadrature_2D(f)
 % Integrate the function f(x,y) over the unit square [-1,1]x[-1,1] using
 % Gaussian quadrature with a unit weighing function \omega(x,y)=1 so the
