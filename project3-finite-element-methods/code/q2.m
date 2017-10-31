@@ -77,15 +77,18 @@ legend('u_x(x,0)', 'u_y(x,0)');
 end
 
 %% Gauss-Legendre quadrature integration
-function integral = gauss_legendre_quadrature_2D(f)
-% Integrate the function f(x,y) over the unit square [-1,1]x[-1,1] using
+function integral = gauss_legendre_quadrature_2D(f, x1, x2, y1, y2)
+% Integrate the function f(x,y) over the domain [x1,x2]x[y1,y2] using
 % Gaussian quadrature with a unit weighing function \omega(x,y)=1 so the
-% associated polynomials are the Legendre polynomials and thus the method is
-% known as Gauss-Legendre quadrature with two evaluation points for each spatial
-% dimension.
-    
-    integral = f(-1/sqrt(3), -1/sqrt(3)) + f(-1/sqrt(3), 1/sqrt(3)) ...
-               + f(1/sqrt(3), -1/sqrt(3)) + f(1/sqrt(3), 1/sqrt(3));
+% associated polynomials are the Legendre polynomials and thus the method
+% is known as Gauss-Legendre quadrature with two quadrature points for each
+% spatial dimension as we only need to integrate bilinear functions.
+    scaled_f = @(x,y) f((x2-x1)*x/2 + (x1+x2)/2, (y2-y1)*y/2 + (y1+y2)/2);
+    integral = (x2-x1)*(y2-y1)/4 ...
+               * (scaled_f(-1/sqrt(3), -1/sqrt(3)) ...
+               + scaled_f(-1/sqrt(3), 1/sqrt(3)) ...
+               + scaled_f(1/sqrt(3), -1/sqrt(3)) ...
+               + f(1/sqrt(3), 1/sqrt(3)));
 end
 
 function dg = dg(i,j,m)
@@ -119,7 +122,7 @@ function G = G(i,j,k,l,m,n)
     dg1 = dg(i,j,m);
     dg2 = dg(k,l,n);
     integrand = @(x,y) alpha*dg1(x,y)*dg2(x,y);
-    G = gauss_legendre_quadrature_2D(integrand);
+    G = gauss_legendre_quadrature_2D(integrand, -1, 1, -1, 1);
 end
 
 function B = B(gamma, delta)
