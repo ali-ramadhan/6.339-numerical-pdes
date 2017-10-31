@@ -1,10 +1,14 @@
-function [MM, bb] = q2()
-global E nu dg_ijdx dg_ijdy
+function q2()
+%% Global variables
+global E nu alpha beta dg_ijdx dg_ijdy
 
-% Physical parameters
+%% Physical problem parameters
 E = 1.18e11; % Young's modulus for titanium Ti-6Al-2Nb-1Ta-0.8Mo [N/m^2]
 nu = 0.31;   % Poisson's ratio for Titanium Ti-6Al-2Nb-1Ta-0.8Mo
+alpha = E/(1-nu^2);
+beta = (1-nu)/2; 
 
+%% Function handles for the bilinear basis functions and their derivatives
 % Cell array with function handles for the four g_ij basis functions.
 % i,j = 1 corresponds to the - subscript. i,j = 2 to the + subscript.
 % E.g. g_ij{2,1} returns the g_+- function handle.
@@ -22,148 +26,52 @@ dg_ijdx = {@(x,y)  (1+y)/4, @(x,y)  (1-y)/4;  % dg_--/dx, dg_-+/dx
 dg_ijdy = {@(x,y) (1+x)/4, @(x,y) -(1+x)/4;  % dg_--/dy, dg_-+/dy
            @(x,y) (1-x)/4, @(x,y) -(1-x)/4}; % dg_+-/dy, dg_++/dy
 
+%% Problem 2(a): single element
+% Build M matrix block by block.
 M = zeros(8,8);
-M = [B(1,1), B(1,2), B(1,3), B(1,4);
-     B(2,1), B(2,2), B(2,3), B(2,4);
-     B(3,1), B(3,2), B(3,3), B(3,4);
-     B(4,1), B(4,2), B(4,3), B(4,4)];
-% for gamma=1:4
-%     for delta=1:4
-%         M(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta);
-%     end
-% end
+for gamma=1:4
+    for delta=1:4
+        M(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta);
+    end
+end
 
-det(M)
-cond(M)
-% figure; heatmap(M); title('M');
-
+% Build right hand side vector containing the forces.
 F_delta = 8e4; % [N/m^2]
-alpha = E/(1-nu^2);
 
 b = zeros(8,1);
 g_11 = g_ij{1,1};
-b(2) = -(F_delta/alpha) * g_11(1,0);
+b(2) = -F_delta * g_11(1,0);
 g_12 = g_ij{1,2};
-b(4) = -(F_delta/alpha) * g_12(1,0);
+b(4) = -F_delta * g_12(1,0);
 g_21 = g_ij{2,1};
-b(6) = -(F_delta/alpha) * g_21(1,0);
+b(6) = -F_delta * g_21(1,0);
 g_22 = g_ij{2,2};
-b(8) = -(F_delta/alpha) * g_22(1,0);
+b(8) = -F_delta * g_22(1,0);
 
-b
-a = M \ b
+% Imposing that u_x = 0 and u_y = 0 for x=-1, -1<=y<=1 is equivalent to imposing
+% that a_+-, a_++, b+-, and b_++ all equal zero. So we are just interested in
+% solving the top left 4x4 system of linear equations.
+M2a = M(1:4,1:4);
+b2a = b(1:4);
+a2a = M2a \ b2a;
 
-Mg = M(1:4,1:4)
-bg = b(1:4)*alpha
-ag = Mg \ bg
-
-ux = @(x,y) ag(1).*g_ij{1,1}(x,y) + ag(3).*g_ij{1,2}(x,y);
-uy = @(x,y) ag(2).*g_ij{1,1}(x,y) + ag(4).*g_ij{1,2}(x,y);
+% Calculate and plot deflection fields from the a_ij, b_ij coefficients.
+ux = @(x,y) a2a(1).*g_ij{1,1}(x,y) + a2a(3).*g_ij{1,2}(x,y);
+uy = @(x,y) a2a(2).*g_ij{1,1}(x,y) + a2a(4).*g_ij{1,2}(x,y);
 x = repmat(linspace(-1,1,100),[100,1]);
 y = repmat(linspace(-1,1,100),[100,1]);
 ux_xy = ux(x,y);
 uy_xy = uy(x,y);
+
 figure;
-plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
-legend('u_x', 'u_y')
+surf(x, y', ux_xy); shading interp; colorbar; title('u_x(x,y)');
 
-% ux = @(x,y) a(1).*g_ij{1,1}(x,y) + a(3).*g_ij{1,2}(x,y) + a(5).*g_ij{2,1}(x,y) + a(7).*g_ij{2,2}(x,y);
-% uy = @(x,y) a(2).*g_ij{1,1}(x,y) + a(4).*g_ij{1,2}(x,y) + a(6).*g_ij{2,1}(x,y) + a(8).*g_ij{2,2}(x,y);
-% x = repmat(linspace(-1,1,10),[10,1]);
-% y = repmat(linspace(-1,1,10),[10,1]);
-% ux_xy = ux(x,y);
-% uy_xy = uy(x,y);
-% surf(x,y',ux_xy);
-% heatmap(ux_xy);
-% figure;
-% heatmap(uy_xy);
-% figure;
-% ux_xy(1,:)
-% uy_xy(1,:)
-% plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
+figure;
+surf(x, y', uy_xy); shading interp; colorbar; title('u_y(x,y)');
 
-% four2two = {[1,1], [1,2], [2,1], [2,2]};
-four2two = {[2,1], [1,1], [2,2], [1,2]};
-beta = (1-nu)/2;
-
-a = sym('a', [4 1]);
-b = sym('b', [4 1]);
-vars = [a(1); b(1); a(2); b(2); a(3); b(3); a(4); b(4);];
-a(1) = 0; a(3) = 0; b(1) = 0; b(3) = 0;
-% vars = [a; b];
-eqns = [];
-
-for gamma=1:4
-    [i,j] = deal(four2two{gamma}(1), four2two{gamma}(2));
-    eqnx = 0;
-    eqny = 0;
-    for delta=1:4
-        [k,l] = deal(four2two{delta}(1), four2two{delta}(2));
-        
-        eqnx = eqnx ...
-            + a(delta) * (G(i,j,k,l,'x','x') + beta*G(i,j,k,l,'y','y')) ...
-            + b(delta) * (nu*G(i,j,k,l,'x','y') + beta*G(i,j,k,l,'y','x'));
-        eqny = eqny ...
-            + a(delta) * (beta*G(i,j,k,l,'x','y') + nu*G(i,j,k,l,'y','x')) ...
-            + b(delta) * (beta*G(i,j,k,l,'x','x') + G(i,j,k,l,'y','y'));
-    end
-    g = g_ij{i,j};
-    b_RHS = -F_delta * g(1,0);
-    eqns = [eqns; eqnx == 0; eqny == b_RHS];
-end
-
-[MM, bb] = equationsToMatrix(eqns, vars)
-
-det(MM)
-cond(MM)
-% figure;
-% heatmap(double(MM))
-M-double(MM)
-
-MM = double(MM); bb = double(bb);
-a = MM \ bb
-
-% ux = @(x,y) a(3).*g_ij{1,1}(x,y) + a(7).*g_ij{1,2}(x,y) + a(1).*g_ij{2,1}(x,y) + a(5).*g_ij{2,2}(x,y);
-% uy = @(x,y) a(4).*g_ij{1,1}(x,y) + a(8).*g_ij{1,2}(x,y) + a(2).*g_ij{2,1}(x,y) + a(6).*g_ij{2,2}(x,y);
-ux = @(x,y) a(1).*g_ij{1,1}(x,y) + a(3).*g_ij{1,2}(x,y) + a(5).*g_ij{2,1}(x,y) + a(7).*g_ij{2,2}(x,y);
-uy = @(x,y) a(2).*g_ij{1,1}(x,y) + a(4).*g_ij{1,2}(x,y) + a(6).*g_ij{2,1}(x,y) + a(8).*g_ij{2,2}(x,y);
-x = repmat(linspace(-1,1,10),[10,1]);
-y = repmat(linspace(-1,1,10),[10,1]);
-ux_xy = ux(x,y);
-uy_xy = uy(x,y);
-
-% figure;
-% surf(x,y',ux_xy);
-% figure;
-% heatmap(ux_xy); title('ux');
-% figure;
-% heatmap(uy_xy); title('uy');
-% 
-% figure;
-% plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
-
-MMM = [MM(3:4,3:4) MM(3:4,7:8); MM(7:8,3:4) MM(7:8,7:8);]
-bbb = [bb(3:4); bb(7:8);]
-
-aaa = MMM \ bbb
-
-ux = @(x,y) aaa(1).*g_ij{1,1}(x,y) + aaa(3).*g_ij{1,2}(x,y);
-uy = @(x,y) aaa(2).*g_ij{1,1}(x,y) + aaa(4).*g_ij{1,2}(x,y);
-x = repmat(linspace(-1,1,10),[10,1]);
-y = repmat(linspace(-1,1,10),[10,1]);
-ux_xy = ux(x,y);
-uy_xy = uy(x,y);
-
-% figure;
-% surf(x,y',ux_xy);
-% figure;
-% surf(x, y', ux_xy); title('u_x');
-% figure;
-% surf(x, y', uy_xy); title('u_y'); colorbar;
-% 
-% figure;
-% plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
-% legend('u_x', 'u_y')
+figure;
+plot(x(end/2,:), ux_xy(end/2,:)', x(end/2,:), uy_xy(end/2,:)');
+legend('u_x(x,0)', 'u_y(x,0)');
 
 end
 
@@ -198,15 +106,13 @@ function dg = dg(i,j,m)
 end
 
 function G = G(i,j,k,l,m,n)
+    global alpha
     assert(i==1 || i==2, 'Invalid value for i, not 1 (-) or 2 (+)!')
     assert(j==1 || j==2, 'Invalid value for j, not 1 (-) or 2 (+)!')
     assert(k==1 || k==2, 'Invalid value for k, not 1 (-) or 2 (+)!')
     assert(l==1 || l==2, 'Invalid value for l, not 1 (-) or 2 (+)!')
     assert(m=='x' || m=='y', 'Invalid value for m, not ''x'' or ''y''!')
     assert(n=='x' || n=='y', 'Invalid value for m, not ''x'' or ''y''!')
-
-    global E nu
-    alpha = E/(1-nu^2);
 
     dg1 = dg(i,j,m);
     dg2 = dg(k,l,n);
@@ -215,8 +121,7 @@ function G = G(i,j,k,l,m,n)
 end
 
 function B = B(gamma, delta)
-    global nu
-    beta = (1-nu)/2;
+    global nu beta
 
     four2two = {[1,1], [1,2], [2,1], [2,2]};
     [i,j] = deal(four2two{gamma}(1), four2two{gamma}(2));
