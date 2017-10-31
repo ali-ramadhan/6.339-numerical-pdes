@@ -373,19 +373,18 @@ where $\gamma,\delta \in \{(-,-), (-,+), (+,-), (+,+) \}$ index each $2\times2$ 
 \subsection{Imposing Dirchlet boundary conditions on the left boundary}
 
 \section{Solving the linear elasticity equation for a beam under stress}
-
-To exert at a specific point $(x,y) = (1,0)$ we will express the force vector $\bm{f}$ using a Dirac delta function such that
+To exert a force at a specific point $(x,y) = (1,0)$ we will express the force vector $\bm{f}$ using a Dirac-delta function such that
 \begin{equation}
   f_x(x,y) = 0, \quad f_y(x,y) = -F_\delta \delta(x-1)\delta(y)
 \end{equation}
 where $F_\delta = \SI{8e4}{\N}$ is the magnitude of the force. Then using the following property of the Dirac-delta function
 \begin{equation}
-  \int_{-\infty}^{\infty} f(x) \delta(x-a) \, dx = f(a)
+  \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f(x,y) \delta(x-a) \delta(y-b) \, dx \, dy = f(a,b)
 \end{equation}
-we can write the components of the right hand side vector $\bm{b}$ as
+which holds true as long as the domain of integration includes the point $(x,y) = (a,b)$, we can write the components of the right hand side vector $\bm{b}$ as
 \begin{equation}
-  \frac{1}{\alpha} \iint_\Omega g_{ij} f_x \, d\Omega = 0, \quad 
-  \frac{1}{\alpha} \iint_\Omega g_{ij} f_y \, d\Omega = -F_\delta g_{ij}(1,0)
+  \iint_\Omega g_{ij} f_x \, d\Omega = 0, \quad 
+  \iint_\Omega g_{ij} f_y \, d\Omega = -F_\delta g_{ij}(1,0)
 \end{equation}
 
 
