@@ -35,7 +35,7 @@ M = [B(1,1), B(1,2), B(1,3), B(1,4);
 
 det(M)
 cond(M)
-figure; heatmap(M); title('M');
+% figure; heatmap(M); title('M');
 
 F_delta = 8e4; % [N/m^2]
 alpha = E/(1-nu^2);
@@ -51,15 +51,28 @@ g_22 = g_ij{2,2};
 b(8) = -(F_delta/alpha) * g_22(1,0);
 
 b
-
 a = M \ b
 
-ux = @(x,y) a(1).*g_ij{1,1}(x,y) + a(3).*g_ij{1,2}(x,y) + a(5).*g_ij{2,1}(x,y) + a(7).*g_ij{2,2}(x,y);
-uy = @(x,y) a(2).*g_ij{1,1}(x,y) + a(4).*g_ij{1,2}(x,y) + a(6).*g_ij{2,1}(x,y) + a(8).*g_ij{2,2}(x,y);
-x = repmat(linspace(-1,1,10),[10,1]);
-y = repmat(linspace(-1,1,10),[10,1]);
+Mg = M(1:4,1:4)
+bg = b(1:4)*alpha
+ag = Mg \ bg
+
+ux = @(x,y) ag(1).*g_ij{1,1}(x,y) + ag(3).*g_ij{1,2}(x,y);
+uy = @(x,y) ag(2).*g_ij{1,1}(x,y) + ag(4).*g_ij{1,2}(x,y);
+x = repmat(linspace(-1,1,100),[100,1]);
+y = repmat(linspace(-1,1,100),[100,1]);
 ux_xy = ux(x,y);
 uy_xy = uy(x,y);
+figure;
+plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
+legend('u_x', 'u_y')
+
+% ux = @(x,y) a(1).*g_ij{1,1}(x,y) + a(3).*g_ij{1,2}(x,y) + a(5).*g_ij{2,1}(x,y) + a(7).*g_ij{2,2}(x,y);
+% uy = @(x,y) a(2).*g_ij{1,1}(x,y) + a(4).*g_ij{1,2}(x,y) + a(6).*g_ij{2,1}(x,y) + a(8).*g_ij{2,2}(x,y);
+% x = repmat(linspace(-1,1,10),[10,1]);
+% y = repmat(linspace(-1,1,10),[10,1]);
+% ux_xy = ux(x,y);
+% uy_xy = uy(x,y);
 % surf(x,y',ux_xy);
 % heatmap(ux_xy);
 % figure;
@@ -103,8 +116,8 @@ end
 
 det(MM)
 cond(MM)
-figure;
-heatmap(double(MM))
+% figure;
+% heatmap(double(MM))
 M-double(MM)
 
 MM = double(MM); bb = double(bb);
@@ -141,16 +154,16 @@ y = repmat(linspace(-1,1,10),[10,1]);
 ux_xy = ux(x,y);
 uy_xy = uy(x,y);
 
-figure;
-surf(x,y',ux_xy);
-figure;
-heatmap(ux_xy); title('ux');
-figure;
-heatmap(uy_xy); title('uy');
-
-figure;
-plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
-legend('u_x', 'u_y')
+% figure;
+% surf(x,y',ux_xy);
+% figure;
+% surf(x, y', ux_xy); title('u_x');
+% figure;
+% surf(x, y', uy_xy); title('u_y'); colorbar;
+% 
+% figure;
+% plot(x(end,:), ux_xy(end,:)', x(end,:), uy_xy(end,:)');
+% legend('u_x', 'u_y')
 
 end
 
