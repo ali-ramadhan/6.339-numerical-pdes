@@ -1,4 +1,4 @@
-function q2()
+function [ux_N, uy_N] = q2()
 %% Global variables
 global E nu alpha beta dg_ijdx dg_ijdy
 
@@ -16,6 +16,11 @@ beta = (1-nu)/2;
 g_ij = {@(x,y) (1+x).*(1+y)./4, @(x,y) (1+x).*(1-y)./4;  % g_--, g_-+
         @(x,y) (1-x).*(1+y)./4, @(x,y) (1-x).*(1-y)./4}; % g_+-, g_++
 
+g_ij_gen = {@(x,y,x0,y0,a,b)  (x-(x0-a))*(y-(y0-a))/(4*a*b), ...
+            @(x,y,x0,y0,a,b) -(x-(x0+a))*(y-(y0-a))/(4*a*b);
+            @(x,y,x0,y0,a,b) -(x-(x0-a))*(y-(y0+a))/(4*a*b), ...
+            @(x,y,x0,y0,a,b)  (x-(x0+a))*(y-(y0+a))/(4*a*b)};
+    
 % Function handles for the x-derivatives of the basis functions g_ij.
 % Note: Returned function handles are still multivariate (x,y) to remain
 % compatible with our 2D Gauss-Legendre quadrature function, which
@@ -76,6 +81,51 @@ plot(x(end/2,:), ux_xy(end/2,:)', x(end/2,:), uy_xy(end/2,:)');
 legend('u_x(x,0)', 'u_y(x,0)');
 
 %% Problem 2(b): rectangular beam (composed of N elements) under stress
+N = 10;
+
+M2b = zeros(4*(N+1), 4*(N+1));
+for n=2:N
+    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = fliplr(flipud(M));
+end
+
+b2b = zeros(4*N+4,1);
+% b2b(end) = -F_delta * g_11(1,0);
+% b2b(end-2) = -F_delta * g_12(1,0);
+% b2b(end-4) = -F_delta * g_21(1,0);
+% b2b(end-6) = -F_delta * g_22(1,0);
+
+b2b(end-6) = -F_delta * g_11(1,0);
+b2b(end-4) = -F_delta * g_12(1,0);
+b2b(end-2) = -F_delta * g_21(1,0);
+b2b(end) = -F_delta * g_22(1,0);
+
+a2b = zeros(4*N+4,1);
+a2b(5:end) = M2b(5:end, 5:end) \ b2b(5:end);
+
+ux_N = [];
+uy_N = [];
+
+for n=1:N
+    a_n = a2b(4*n-3:4*n+4);
+    aij = a_n(1:2:7);
+    bij = a_n(2:2:8);
+ 
+    x0 = 2*n-1; y0 = 0;
+    a = 1; b = 1;
+    ux = @(x,y,x0,y0,a,b) aij(4).*g_ij_gen{1,1}(x,y,x0,y0,a,b) ...
+                        + aij(3).*g_ij_gen{1,2}(x,y,x0,y0,a,b) ...
+                        + aij(2).*g_ij_gen{2,1}(x,y,x0,y0,a,b) ...
+                        + aij(1).*g_ij_gen{2,2}(x,y,x0,y0,a,b);
+    
+    
+    uy = @(x,y) bij(4).*g_ij{1,1}(x,y) + bij(3).*g_ij{1,2}(x,y) + bij(2).*g_ij{2,1}(x,y) + bij(1).*g_ij{2,2}(x,y);
+    
+    x = repmat(linspace(0,2,100), [100,1]);
+    y = repmat(linspace(-1,1,100), [100,1]);
+    
+    ux_N = [ux_N; ux(x,y)];
+    uy_N = [uy_N; uy(x,y)];
+end
 end
 
 %% Gauss-Legendre quadrature integration
