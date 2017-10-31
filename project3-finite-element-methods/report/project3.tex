@@ -218,7 +218,7 @@ This allows us to express, for example, $u_x(x,y)$ as a linear combination of th
 \begin{equation}
   u_x(x,y) = a_{ij}g_{ij}(x,y) \equiv \sumop_{i,j \in \{-,+\}} a_{ij}g_{ij}(x,y)
 \end{equation}
-where summation over repeated indices is now implied. Doing this for $\bm{u}$ and $\bm{g}$ we will write
+where summation over the repeated indices $i,j$ is now implied. Doing this for $\bm{u}$ and $\bm{g}$ we will write
 \begin{equation}
 \begin{gathered}
   u_x(x,y) = a_{ij}g_{ij}(x,y), \quad u_y(x,y) = b_{ij}g_{ij}(x,y) \\
@@ -365,8 +365,44 @@ where $\gamma,\delta \in \{(-,-), (-,+), (+,-), (+,+) \}$ index each $2\times2$ 
 \end{equation}
 
 \subsection{Evaluating $\mathcal{M}$ by two-dimensional Gauss-Legendre quadrature}
+One-dimensional Gaussian quadrature seeks an approximation to the function $f(x)$ over the domain $-1 \le x \le 1$ as a weighted sum of function values at specific points
+\begin{equation}
+	\int_{-1}^1 f(x) \, dx \approx \sumop_{i=1}^n w_i f(x_i)
+\end{equation}
+where $w_i$ are the weights and $x_i$ are the points at which the function is to be evaluated. The problem of Gaussian quadrature is then to find the optimal weights $w_i$ and quadrature points $x_i$. It will produce an exact answer when integrating polynomials of degree $2n-1$ using $n$ quadrature points. This somewhat makes sense in hindsight as the integral of a polynomial of degree $2n-1$ yields a polynomial of degree $2n$, and an $n$-point quadrature rule has $2n$ degrees of freedom in the form of $n$ weights and $n$ quadrature points, and thus should be able to exactly represent the integral.
 
-\subsection{Mapping the problem to a general square domain }
+For a less well-behaved function $f(x)$, Gaussian quadrature may yield good results if we write $f(x) = \omega(x)g(x)$ where $\omega(x)$ is an appropriate weighing function. This will change the weights and quadrature points
+\begin{equation}
+	\int_{-1}^1 f(x) \, dx = \int_{-1}^1 \omega(x)g(x) \, dx \approx \sumop_{i=1}^n w_i^\star f(x_i^\star)
+\end{equation}
+In this form, it can be shown that the modified quadrature points $x_i^\star$ are the roots of an orthogonal polynomial belonging to some specific class of orthogonal polynomials. In the case that $\omega(x)=1$, the method is known as \emph{Gauss-Legendre quadrature} as the class of orthogonal polynomials happens to be the Legendre polynomials $P_n(x)$. For an $n$-point quadrature rule, the quadrature points are given by the $n$ roots of $P_n(x)$ denoted $x_i$, and the weights are given by
+\begin{equation}
+	w_i = \frac{2}{\left( 1-x_i^2 \right) [P'_n(x_i)]^2}
+\end{equation}
+which will be useful when constructing our own quadrature rule.
+
+Integrating a function $f(x)$ over a more general domain $a \le x \le b$ by Gaussian quadrature can be done by mapping the function from $[a,b]$ to $[-1,1]$
+\begin{equation}
+	\int_a^b f(x) \, dx = \frac{b-a}{2} \int_{-1}^1 f\left(\frac{b-a}{2}x + \frac{a+b}{2}\right) \, dx
+\end{equation}
+which can now be approximated by the quadrature rule stated above
+\begin{equation}
+	\int_a^b f(x) \, dx \approx \frac{b-a}{2} \sumop_{i=1}^n w_i f\left( \frac{b-a}{2}x_i + \frac{a+b}{2} \right)
+\end{equation}
+and so we see that the weights are scaled while the quadrature points are both scaled and shifted.
+
+Gaussian quadrature in multiple dimensions is done by iteratively applying the chosen quadrature scheme in each dimension. Different quadrature rules may even be chosen for each dimension. For the case of a two-dimensional Gauss-Legendre quadrature of a bivariate function $f(x,y)$ with $n$ points in each dimension over the domain $[-1,1]\times[-1,1]$ we get
+\begin{equation}
+	\int_{-1}^1 \int_{-1}^1 f(x,y) \, dx \, dy \approx \sumop_{i=1}^n \sumop_{j=1}^n w_i w_j f(x_i,x_j)
+\end{equation}
+
+We are interested in integrating bilinear functions which just require $2$ quadrature points. The two roots of $P_2(x)$ are $x_i = \pm \frac{1}{\sqrt{3}}$ and the corresponding weights are $w_i = 1$. Over the domain $[-1,1]\times[-1,1]$ the quadrature rule becomes exact for polynomials up to degree three
+\begin{multline}
+	\int_{-1}^1 \int_{-1}^1 f(x,y) \, dx \, dy = f\left(-\frac{1}{\sqrt{3}}, -\frac{1}{\sqrt{3}}\right) + f\left(-\frac{1}{\sqrt{3}}, \frac{1}{\sqrt{3}}\right) \\
+	+ f\left(\frac{1}{\sqrt{3}}, -\frac{1}{\sqrt{3}}\right) + f\left(\frac{1}{\sqrt{3}}, \frac{1}{\sqrt{3}}\right)
+\end{multline}
+
+\subsection{Mapping the basis functions to a general square domain}
 
 \subsection{Dependence of the weak form on Dirchlet boundary conditions}
 
