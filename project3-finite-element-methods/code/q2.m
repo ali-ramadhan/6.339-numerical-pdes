@@ -27,7 +27,7 @@ dg_ijdx = {@(x,y)  (1+y)/4, @(x,y)  (1-y)/4;  % dg_--/dx, dg_-+/dx
 dg_ijdy = {@(x,y) (1+x)/4, @(x,y) -(1+x)/4;  % dg_--/dy, dg_-+/dy
            @(x,y) (1-x)/4, @(x,y) -(1-x)/4}; % dg_+-/dy, dg_++/dy
 
-%% Problem 2(a): single element
+%% Problem 2(a): single element (unit square) beam under stress
 % Build M matrix block by block.
 M = zeros(8,8);
 % M = sym('M', [8 8]);
@@ -74,6 +74,8 @@ surf(x, y', uy_xy); shading interp; colorbar; title('u_y(x,y)');
 figure;
 plot(x(end/2,:), ux_xy(end/2,:)', x(end/2,:), uy_xy(end/2,:)');
 legend('u_x(x,0)', 'u_y(x,0)');
+
+%% Problem 2(b): rectangular beam (composed of N elements) under stress
 end
 
 %% Gauss-Legendre quadrature integration
@@ -91,6 +93,7 @@ function integral = gauss_legendre_quadrature_2D(f, x1, x2, y1, y2)
                + f(1/sqrt(3), 1/sqrt(3)));
 end
 
+%% Interface for looking up derivatives of the bilinear basis functions.
 function dg = dg(i,j,m)
 % Returns the function handle corresponding to the m derivative of the g_ij
 % basis function, that is dg_ij/dx_m. i,j can take on the values {1,2} where 1
@@ -110,6 +113,7 @@ function dg = dg(i,j,m)
     end
 end
 
+%% Implementation of the rank-6 G_ijkl^mn tensor-like symbol.
 function G = G(i,j,k,l,m,n)
     global alpha
     assert(i==1 || i==2, 'Invalid value for i, not 1 (-) or 2 (+)!')
@@ -125,6 +129,7 @@ function G = G(i,j,k,l,m,n)
     G = gauss_legendre_quadrature_2D(integrand, -1, 1, -1, 1);
 end
 
+%% Generates and returns the 2x2 block matrices B_gamma,delta.
 function B = B(gamma, delta)
     global nu beta
 
