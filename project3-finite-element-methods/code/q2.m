@@ -46,12 +46,6 @@ dg_ijdy_gen = {@(x,y,x0,y0,a,b)  (x-(x0-a))/(4*a*b), ...
                @(x,y,x0,y0,a,b)  (x-(x0+a))/(4*a*b)};
        
 %% Problem 2(a): single element (unit square) beam under stress
-% Element parameters
-x0 = 0;
-y0 = 0;
-a = 1;
-b = 1;
-
 % Build M matrix block by block.
 M = zeros(8,8);
 % M = sym('M', [8 8]);  % uncomment to calculate M analytically
@@ -64,14 +58,15 @@ end
 % Build right hand side vector containing the forces.
 F_delta = 8e4; % [N/m^2]
 
-b = zeros(8,1);
 g_11 = g_ij{1,1};
-b(2) = -F_delta * g_11(1,0);
 g_12 = g_ij{1,2};
-b(4) = -F_delta * g_12(1,0);
 g_21 = g_ij{2,1};
-b(6) = -F_delta * g_21(1,0);
 g_22 = g_ij{2,2};
+
+b = zeros(8,1);
+b(2) = -F_delta * g_11(1,0);
+b(4) = -F_delta * g_12(1,0);
+b(6) = -F_delta * g_21(1,0);
 b(8) = -F_delta * g_22(1,0);
 
 % Imposing that u_x = 0 and u_y = 0 for x=-1, -1<=y<=1 is equivalent to imposing
@@ -100,11 +95,11 @@ plot(x(end/2,:), ux_xy(end/2,:)', x(end/2,:), uy_xy(end/2,:)');
 legend('u_x(x,0)', 'u_y(x,0)');
 
 %% Problem 2(b): rectangular beam (composed of N elements) under stress
-N = 4;
+N = 20;
 
 % Assemble the block-diagonal matrix.
 M2b = zeros(4*(N+1), 4*(N+1));
-for n=2:N
+for n=1:N
     x0 = 2*n-1;
     y0 = 0;
     a = 1;
@@ -113,11 +108,15 @@ for n=2:N
     M2 = zeros(8,8);
     for gamma=1:4
         for delta=1:4
-            M2(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B_gen(gamma, delta, x0, y0, a, b);
+            M2(2*gamma-1:2*gamma, 2*delta-1:2*delta) = ...
+                B_gen(gamma, delta, x0, y0, a, b);
         end
     end
     
-    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = fliplr(flipud(M2));
+    % Flip the matrix up/down and left/right to switch the order of the the
+    % coefficients so that the -+ and -- coefficients are in the bottom rows
+    % (in that order). We do this so that we can overlap the matrices.
+    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = flipud(M2);
 end
 
 % Imposing the u_x = u_y = 0 BC at the left wall.
@@ -125,17 +124,24 @@ M2b(1:4,1:4) = zeros(4,4);
 M2b(5:8,1:4) = zeros(4,4);
 M2b(1:4,5:8) = zeros(4,4);
 
+x0 = 2*N-1;
+y0 = 0;
+a = 1;
+b = 1;
+
+g_11_gen = g_ij_gen{1,1};
+g_12_gen = g_ij_gen{1,2};
+g_21_gen = g_ij_gen{2,1};
+g_22_gen = g_ij_gen{2,2};
+
 b2b = zeros(4*N+4,1);
-b2b(end) = -F_delta * g_11(2*N,0);
-b2b(end-2) = -F_delta * g_12(2*N,0);
-b2b(end-4) = -F_delta * g_21(2*N,0);
-b2b(end-6) = -F_delta * g_22(2*N,0);
+b2b(end)   = -F_delta * g_11_gen(2*N,0,x0,y0,a,b);
+b2b(end-2) = -F_delta * g_12_gen(2*N,0,x0,y0,a,b);
+b2b(end-4) = -F_delta * g_21_gen(2*N,0,x0,y0,a,b);
+b2b(end-6) = -F_delta * g_22_gen(2*N,0,x0,y0,a,b);
 
-% b2b(end-6) = -F_delta * g_11(2*N,0);
-% b2b(end-4) = -F_delta * g_12(2*N,0);
-% b2b(end-2) = -F_delta * g_21(2*N,0);
-% b2b(end) = -F_delta * g_22(2*N,0);
-
+% Solve for the coefficients ignoring the four coefficients for element 1
+% that we know must be zero to satisfy the BCs.
 a2b = zeros(4*N+4,1);
 a2b(5:end) = M2b(5:end, 5:end) \ b2b(5:end);
 % a2b = M2b \ b2b;
@@ -143,6 +149,8 @@ a2b(5:end) = M2b(5:end, 5:end) \ b2b(5:end);
 ux_N = [];
 uy_N = [];
 
+% Calculate the deflection fields from the a_ij, b_ij coefficients for each
+% element.
 for n=1:N
     a_n = a2b(4*n-3:4*n+4);
     aij = a_n(1:2:7);
@@ -161,7 +169,7 @@ for n=1:N
               + bij(2).*g_ij_gen{2,1}(x,y,x0,y0,a,b) ...
               + bij(1).*g_ij_gen{2,2}(x,y,x0,y0,a,b);
     
-    x = repmat(linspace(2*n,2*n+2,100), [100,1]);
+    x = repmat(linspace(2*n-2,2*n,100), [100,1]);
     y = repmat(linspace(-1,1,100), [100,1]);
     
     ux_N = [ux_N; ux(x,y)'];
