@@ -1,4 +1,4 @@
-function [ux_N, uy_N] = q2()
+function [M2b, ux_N, uy_N] = q2()
 %% Global variables
 global E nu alpha beta dg_ijdx dg_ijdy dg_ijdx_gen dg_ijdy_gen
 
@@ -99,8 +99,10 @@ N = 10;
 
 M2b = zeros(4*(N+1), 4*(N+1));
 for n=1:N
-    x0 = 2*n-1; y0 = 0;
-    a = 1; b = 1;
+    x0 = 2*n-1;
+    y0 = 0;
+    a = 1;
+    b = 1;
     
     M2 = zeros(8,8);
     for gamma=1:4
@@ -112,16 +114,19 @@ for n=1:N
     M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = fliplr(flipud(M2));
 end
 
-b2b = zeros(4*N+4,1);
-% b2b(end) = -F_delta * g_11(1,0);
-% b2b(end-2) = -F_delta * g_12(1,0);
-% b2b(end-4) = -F_delta * g_21(1,0);
-% b2b(end-6) = -F_delta * g_22(1,0);
+M2b(5:8,1:4) = zeros(4,4);
+M2b(1:4,5:8) = zeros(4,4);
 
-b2b(end-6) = -F_delta * g_11(1,0);
-b2b(end-4) = -F_delta * g_12(1,0);
-b2b(end-2) = -F_delta * g_21(1,0);
-b2b(end) = -F_delta * g_22(1,0);
+b2b = zeros(4*N+4,1);
+b2b(end) = -F_delta * g_11(1,0);
+b2b(end-2) = -F_delta * g_12(1,0);
+b2b(end-4) = -F_delta * g_21(1,0);
+b2b(end-6) = -F_delta * g_22(1,0);
+
+% b2b(end-6) = -F_delta * g_11(1,0);
+% b2b(end-4) = -F_delta * g_12(1,0);
+% b2b(end-2) = -F_delta * g_21(1,0);
+% b2b(end) = -F_delta * g_22(1,0);
 
 a2b = zeros(4*N+4,1);
 a2b(5:end) = M2b(5:end, 5:end) \ b2b(5:end);
@@ -134,8 +139,10 @@ for n=1:N
     aij = a_n(1:2:7);
     bij = a_n(2:2:8);
  
-    x0 = 2*n-1; y0 = 0;
-    a = 1; b = 1;
+    x0 = 2*n-1;
+    y0 = 0;
+    a = 1;
+    b = 1;
     ux = @(x,y) aij(4).*g_ij_gen{1,1}(x,y,x0,y0,a,b) ...
               + aij(3).*g_ij_gen{1,2}(x,y,x0,y0,a,b) ...
               + aij(2).*g_ij_gen{2,1}(x,y,x0,y0,a,b) ...
