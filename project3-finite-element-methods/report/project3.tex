@@ -465,6 +465,21 @@ and so we see that the weights are scaled while the quadrature points are both s
 Thus two-dimensional Gauss-Legendre quadrature with 2 points for each dimension over the domain $[x_0-a,x_0+a]\times[y_0-a,y_0+a]$ becomes
 
 \subsection{Dependence of the weak form on Dirchlet boundary conditions}
+Let us assume that part of the domain boundary $\partial\Omega_D$ satisfies the Dirchlet boundary conditions $u_x = u_y=0$ while the rest of the domain boundary $\partial\Omega_N = \partial\Omega \setminus \partial\Omega_D$ satisfies the free boundary condition $n_x\bm{\sigma}_x + n_y\bm{\sigma}_y = 0$. In such a case, we must go back to Eq. \eqref{eq:withLI} and rewrite the line integral over the boundary as
+\begin{equation*}
+\int_{\partial\Omega} \left( \bm{\sigma}_x n_x + \bm{\sigma}_y n_y \right) \, d\ell
+=  \int_{\partial\Omega_D} \left( \bm{\sigma}_x n_x + \bm{\sigma}_y n_y \right) \, d\ell
++  \int_{\partial\Omega_N} \left( \bm{\sigma}_x n_x + \bm{\sigma}_y n_y \right) \, d\ell
+\end{equation*}
+however the line integral over $\partial\Omega_N$ must vanish as the free boundary condition is satisfied in $\partial\Omega_N$. The line integral over $\partial\Omega_D$ must also vanish as $\sigma_{ij} = 0$ for all $i,j$ if $u_x = u_y = 0$. Thus the line integral still completely vanishes
+\begin{equation*}
+\int_{\partial\Omega} \left( \bm{\sigma}_x n_x + \bm{\sigma}_y n_y \right) \, d\ell = 0
+\end{equation*}
+and our weak formulation is not modified mathematically at all. However, the Sobolev space $\mathcal{X}$ in which the functions $\bm{u}$ and $\bm{g}$ will be found will now change to account for the fact that they must satisfy the boundary conditions. In fact, we will now have that
+\begin{equation}
+\mathcal{X} = \left\{ f(x) : f(x) \in H^1_\Omega, \;\; f(x) = 0 \; \forall x \in \partial\Omega_D \right\}
+\end{equation}
+which now forms an \emph{affine space} as we saw in class.
 
 \subsection{Imposing Dirchlet boundary conditions on the left boundary}
 
