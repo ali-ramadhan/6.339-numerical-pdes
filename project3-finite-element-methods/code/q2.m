@@ -1,6 +1,6 @@
 function [ux_N, uy_N] = q2()
 %% Global variables
-global E nu alpha beta dg_ijdx dg_ijdy
+global E nu alpha beta dg_ijdx dg_ijdy dg_ijdx_gen dg_ijdy_gen
 
 %% Physical problem parameters
 E = 1.18e11; % Young's modulus for titanium Ti-6Al-2Nb-1Ta-0.8Mo [N/m^2]
@@ -16,10 +16,10 @@ beta = (1-nu)/2;
 g_ij = {@(x,y) (1+x).*(1+y)./4, @(x,y) (1+x).*(1-y)./4;  % g_--, g_-+
         @(x,y) (1-x).*(1+y)./4, @(x,y) (1-x).*(1-y)./4}; % g_+-, g_++
 
-g_ij_gen = {@(x,y,x0,y0,a,b)  (x-(x0-a))*(y-(y0-a))/(4*a*b), ...
-            @(x,y,x0,y0,a,b) -(x-(x0+a))*(y-(y0-a))/(4*a*b);
-            @(x,y,x0,y0,a,b) -(x-(x0-a))*(y-(y0+a))/(4*a*b), ...
-            @(x,y,x0,y0,a,b)  (x-(x0+a))*(y-(y0+a))/(4*a*b)};
+g_ij_gen = {@(x,y,x0,y0,a,b)  (x-(x0-a))*(y-(y0-b))/(4*a*b), ...
+            @(x,y,x0,y0,a,b) -(x-(x0+a))*(y-(y0-b))/(4*a*b);
+            @(x,y,x0,y0,a,b) -(x-(x0-a))*(y-(y0+b))/(4*a*b), ...
+            @(x,y,x0,y0,a,b)  (x-(x0+a))*(y-(y0+b))/(4*a*b)};
     
 % Function handles for the x-derivatives of the basis functions g_ij.
 % Note: Returned function handles are still multivariate (x,y) to remain
@@ -27,18 +27,32 @@ g_ij_gen = {@(x,y,x0,y0,a,b)  (x-(x0-a))*(y-(y0-a))/(4*a*b), ...
 % integrates them over the unit square.
 dg_ijdx = {@(x,y)  (1+y)/4, @(x,y)  (1-y)/4;  % dg_--/dx, dg_-+/dx
            @(x,y) -(1+y)/4, @(x,y) -(1-y)/4}; % dg_+-/dx, dg_++/dx
+       
+dg_ijdx_gen = {@(x,y,x0,y0,a,b)  (y-(y0-b))/(4*a*b), ...
+               @(x,y,x0,y0,a,b) -(y-(y0-b))/(4*a*b);
+               @(x,y,x0,y0,a,b) -(y-(y0+b))/(4*a*b), ...
+               @(x,y,x0,y0,a,b)  (y-(y0+b))/(4*a*b)};
 
 % Function handles for the y-derivatives of the basis functions g_ij.
 dg_ijdy = {@(x,y) (1+x)/4, @(x,y) -(1+x)/4;  % dg_--/dy, dg_-+/dy
            @(x,y) (1-x)/4, @(x,y) -(1-x)/4}; % dg_+-/dy, dg_++/dy
 
+dg_ijdy_gen = {@(x,y,x0,y0,a,b)  (x-(x0-a))/(4*a*b), ...
+               @(x,y,x0,y0,a,b) -(x-(x0+a))/(4*a*b);
+               @(x,y,x0,y0,a,b) -(x-(x0-a))/(4*a*b), ...
+               @(x,y,x0,y0,a,b)  (x-(x0+a))/(4*a*b)};
+       
 %% Problem 2(a): single element (unit square) beam under stress
+% Element parameters
+x0 = 0; y0 = 0;
+a = 1; b = 1;
+
 % Build M matrix block by block.
 M = zeros(8,8);
 % M = sym('M', [8 8]);  % uncomment to calculate M analytically
 for gamma=1:4
     for delta=1:4
-        M(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta);
+        M(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta, x0, y0, a, b);
     end
 end
 
@@ -85,7 +99,17 @@ N = 10;
 
 M2b = zeros(4*(N+1), 4*(N+1));
 for n=1:N
-    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = fliplr(flipud(M));
+    x0 = 2*n-1; y0 = 0;
+    a = 1; b = 1;
+    
+    M2 = zeros(8,8);
+    for gamma=1:4
+        for delta=1:4
+            M2(2*gamma-1:2*gamma, 2*delta-1:2*delta) = B(gamma, delta, x0, y0, a, b);
+        end
+    end
+    
+    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = fliplr(flipud(M2));
 end
 
 b2b = zeros(4*N+4,1);
@@ -155,17 +179,17 @@ function dg = dg(i,j,m)
     assert(j==1 || j==2, 'Invalid value for j, not 1 (-) or 2 (+)!')
     assert(m=='x' || m=='y', 'Invalid value for m, not ''x'' or ''y''!')
 
-    global dg_ijdx dg_ijdy
+    global dg_ijdx_gen dg_ijdy_gen
 
     if m == 'x'
-        dg = dg_ijdx{i,j};
+        dg = dg_ijdx_gen{i,j};
     elseif m == 'y'
-        dg = dg_ijdy{i,j};
+        dg = dg_ijdy_gen{i,j};
     end
 end
 
 %% Implementation of the rank-6 G_ijkl^mn tensor-like symbol.
-function G = G(i,j,k,l,m,n)
+function G = G(i,j,k,l,m,n,x0,y0,a,b)
     global alpha
     assert(i==1 || i==2, 'Invalid value for i, not 1 (-) or 2 (+)!')
     assert(j==1 || j==2, 'Invalid value for j, not 1 (-) or 2 (+)!')
@@ -176,22 +200,24 @@ function G = G(i,j,k,l,m,n)
 
     dg1 = dg(i,j,m);
     dg2 = dg(k,l,n);
-    integrand = @(x,y) alpha*dg1(x,y)*dg2(x,y);
-    G = gauss_legendre_quadrature_2D(integrand, -1, 1, -1, 1);
+    integrand = @(x,y) alpha*dg1(x,y,x0,y0,a,b)*dg2(x,y,x0,y0,a,b);
+    G = gauss_legendre_quadrature_2D(integrand, x0-a, x0+a, y0-b, y0+b);
 end
 
 %% Generates and returns the 2x2 block matrices B_gamma,delta.
-function B = B(gamma, delta)
+function B = B(gamma, delta,x0,y0,a,b)
     global nu beta
 
     four2two = {[1,1], [1,2], [2,1], [2,2]};
     [i,j] = deal(four2two{gamma}(1), four2two{gamma}(2));
     [k,l] = deal(four2two{delta}(1), four2two{delta}(2));
+    
+    G2 = @(i,j,k,l,m,n) G(i,j,k,l,m,n,x0,y0,a,b);
 
-    B_11 = G(i,j,k,l,'x','x') + beta*G(i,j,k,l,'y','y');
-    B_12 = nu*G(i,j,k,l,'x','y') + beta*G(i,j,k,l,'y','x');
-    B_21 = beta*G(i,j,k,l,'x','y') + nu*G(i,j,k,l,'y','x');
-    B_22 = beta*G(i,j,k,l,'x','x') + G(i,j,k,l,'y','y');
+    B_11 = G2(i,j,k,l,'x','x') + beta*G2(i,j,k,l,'y','y');
+    B_12 = nu*G2(i,j,k,l,'x','y') + beta*G2(i,j,k,l,'y','x');
+    B_21 = beta*G2(i,j,k,l,'x','y') + nu*G2(i,j,k,l,'y','x');
+    B_22 = beta*G2(i,j,k,l,'x','x') + G2(i,j,k,l,'y','y');
 
     B = [B_11, B_12; B_21, B_22];
 end
