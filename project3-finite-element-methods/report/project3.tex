@@ -487,7 +487,7 @@ which can now be approximated by the quadrature rule stated above
 and so we see that the weights are scaled while the quadrature points are both scaled and shifted.
 
 Thus two-dimensional Gauss-Legendre quadrature with 2 points for each dimension over the domain $[x_0-a,x_0+a]\times[y_0-a,y_0+a]$ becomes
-\begin{equation}
+\begin{equation} \label{eq:ph3}
 	\int_{x_0-a}^{x_0+a} \int_{y_0-a}^{y_0+a} f(x,y) \, dy \, dx \approx a^2 \sumop_{i=1} \sumop_{j=1} w_i f(x_0 + ax_i, y_0 + ay_i)
 \end{equation}
 
@@ -557,7 +557,7 @@ we can write the components of the right hand side vector $\bm{b}$ as
 \end{equation}
 
 \subsection{Single square element beam under stress}
-Solving the $4\times4$ matrix system in Eq. \eqref{eq:q2a4x4} for the linear combination coefficients and using Eq. \eqref{eq:RHSintegral} for the right hand side, we can calculate $u_x(x,y) = a_{ij}g_{ij}$ and $u_y(x,y) = b_{ij}g_{ij}$. We plot the calculated deflection fields in figure \ref{fig:q2a_ux_uy}.
+To solve for the deflection field for a single element beam, we just need to solve the $4\times4$ matrix system in Eq. \eqref{eq:q2a4x4} for the linear combination coefficients and using Eq. \eqref{eq:RHSintegral} for the right hand side, we can calculate $u_x(x,y) = a_{ij}g_{ij}$ and $u_y(x,y) = b_{ij}g_{ij}$. We plot the calculated deflection fields in figure \ref{fig:q2a_ux_uy}.
 
 \begin{figure}[!htb]
 	\centering
@@ -581,6 +581,35 @@ We plot the deflection along the middle ($y=0$) of the single square element bea
 	\caption{Deflection of the single square element beam along the middle of the beam ($y=0$) in the $x$-direction, $u_x(x,0)$ and the deflection along the middle of the beam in the $y$-direction, $u_y(x,0)$.}
 	\label{fig:q2a_plot}
 \end{figure}
+
+\subsection{$N$ element beam under stress}
+Now we wish to model the beam with a single row of $N$ elements over the domain $\Omega = [0,2N]\times[-1,1]$, we need a different set of bilinear basis functions that are bilinear in each individual element $i$ with domain $\Omega_i = [2i-2, 2i]\times[-1,1]$. Generalizing the original basis functions from the square domain $[-1,1]\times[-1,1]$ to the more general rectangular domain $[x_0-a,x_0+a]\times[y_0-a,y_0+a]$ yields the following basis functions
+\begin{equation} \label{eq:genBasis}
+\begin{gathered}
+	g_{--}(x,y) = +\frac{[x-(x_0-a)][y-(y_0-b)]}{4ab}, \quad g_{-+}(x,y) = -\frac{[x-(x_0+a)][y-(y_0-b)]}{4ab} \\
+	g_{+-}(x,y) = -\frac{[x-(x_0-a)][y-(y_0+b)]}{4ab}, \quad g_{-+}(x,y) = +\frac{[x-(x_0+a)][y-(y_0+b)]}{4ab} \\
+\end{gathered}
+\end{equation}
+which we utilize for the $i^\mathrm{th}$ element by setting $x_0=2i-1$, $y_0=0$, and $a=b=1$. We can integrate them using the more generalized Gauss-Legendre quadrature scheme we developed in Eq. \eqref{eq:ph3}.
+
+We must still impose the Dirchlet boundary condition that $u_x=u_y=0$ on the left boundary which means setting $a_{+-} = a_{++} = b_{+-} = b_{++} = 0$ for the first element. The deflection fields must also be continuous across elements. To see how we might impose this, we will look at the $u_x(x,y)$ deflection field. Let us denote the deflection field in element $n$ as $u^n_x(x,y) = a^n_{ij} g^n_{ij}$ where $a^n_{ij}$ are the linear combination coefficients and $g^n_{ij}$ the generalized basis functions from Eq. \eqref{eq:genBasis} in the $n^\mathrm{th}$ element. Then imposing that $u_x(x,y)$ is continuous across $x=2n$, we must have that
+\begin{equation}
+	a^n_{ij} g^n_{ij}(2n,y) = a^{n+1}_{ij} g^{n+1}_{ij}(2n,y)
+\end{equation}
+which results in the following condition when the basis functions are evaluated at $x=2n$
+\begin{equation}
+	a^n_{--} \frac{2n(y+1)}{4} + a^n_{-+} \frac{2n(y+1)}{4} = a^{n+1}_{+-} \frac{2n(y+1)}{4} + a^{n+1}_{++} \frac{2n(y+1)}{4}
+\end{equation}
+where the other terms in the linear combination vanish as $g^n_{+-}(2n,y) = 0$, $g^n_{++}(2n,y) = 0$, $g^{n+1}_{--}(2n,y) = 0$, and $g^{n+1}_{-+}(2n,y) = 0$. For the condition to hold along the entire element boundary, we must have that
+\begin{equation}
+\begin{gathered}
+	a^n_{--} = a^{n+1}_{+-}, \quad a^n_{-+} = a^{n+1}_{++} \\
+	b^n_{--} = b^{n+1}_{+-}, \quad b^n_{-+} = b^{n+1}_{++}
+\end{gathered}
+\end{equation}
+as an identical condition holds for the $u_y(x,y)$ deflection field and the $b_{ij}$ coefficients between elements $n$ and $n+1$.
+
+To impose these continuity conditions we will use a clever trick. We notice that since four of the coefficients are \emph{shared} between each set of elements, we do not need to solve for both separately. Instead we will only solve for one of them. We will do this by orienting our $\mathcal{M}$ matrix appropriately for each element and overlapping them such that when we construct the full system of linear equations we do not duplicate any equation or solve for any coefficient more times than needed. Since the $(-,-)$ and $(-,+)$ terms in element $n$ match the $(+,-)$ and $(+,+)$ terms in element $n+1$, we 
 
 \clearpage
 \begin{thebibliography}{9}
