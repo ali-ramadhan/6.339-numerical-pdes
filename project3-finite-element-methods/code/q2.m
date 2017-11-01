@@ -84,7 +84,7 @@ legend('u_x(x,0)', 'u_y(x,0)');
 N = 10;
 
 M2b = zeros(4*(N+1), 4*(N+1));
-for n=2:N
+for n=1:N
     M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = fliplr(flipud(M));
 end
 
@@ -112,15 +112,16 @@ for n=1:N
  
     x0 = 2*n-1; y0 = 0;
     a = 1; b = 1;
-    ux = @(x,y,x0,y0,a,b) aij(4).*g_ij_gen{1,1}(x,y,x0,y0,a,b) ...
-                        + aij(3).*g_ij_gen{1,2}(x,y,x0,y0,a,b) ...
-                        + aij(2).*g_ij_gen{2,1}(x,y,x0,y0,a,b) ...
-                        + aij(1).*g_ij_gen{2,2}(x,y,x0,y0,a,b);
+    ux = @(x,y) aij(4).*g_ij_gen{1,1}(x,y,x0,y0,a,b) ...
+              + aij(3).*g_ij_gen{1,2}(x,y,x0,y0,a,b) ...
+              + aij(2).*g_ij_gen{2,1}(x,y,x0,y0,a,b) ...
+              + aij(1).*g_ij_gen{2,2}(x,y,x0,y0,a,b);
+    uy = @(x,y) bij(4).*g_ij_gen{1,1}(x,y,x0,y0,a,b) ...
+              + bij(3).*g_ij_gen{1,2}(x,y,x0,y0,a,b) ...
+              + bij(2).*g_ij_gen{2,1}(x,y,x0,y0,a,b) ...
+              + bij(1).*g_ij_gen{2,2}(x,y,x0,y0,a,b);
     
-    
-    uy = @(x,y) bij(4).*g_ij{1,1}(x,y) + bij(3).*g_ij{1,2}(x,y) + bij(2).*g_ij{2,1}(x,y) + bij(1).*g_ij{2,2}(x,y);
-    
-    x = repmat(linspace(0,2,100), [100,1]);
+    x = repmat(linspace(2*n,2*n+2,100), [100,1]);
     y = repmat(linspace(-1,1,100), [100,1]);
     
     ux_N = [ux_N; ux(x,y)];
