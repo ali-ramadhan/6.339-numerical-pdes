@@ -250,8 +250,24 @@ A bilinear form that is \emph{positive semidefinite} obeys the property $a(u,v) 
   = \iint_\Omega \frac{E}{1-\nu^2} \left\{
   \left( \p{u_x}{x} \right)^2 + 2\nu\p{u_y}{y}\p{u_x}{x} + \left( \p{u_y}{y} \right)^2
   + \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)^2
-  \right\} \, dA \\
+  \right\} \, dA
 \end{multline}
+where we have that
+\begin{equation*}
+	\left( \p{u_x}{x} \right)^2 + 2\nu\p{u_y}{y}\p{u_x}{x} + \left( \p{u_y}{y} \right)^2
+	\ge \nu \left( \p{u_x}{x} \right)^2 + 2\nu\p{u_y}{y}\p{u_x}{x} + \nu \left( \p{u_y}{y} \right)^2
+	= \nu \left(  \p{u_x}{x} + \p{u_y}{y} \right)^2
+\end{equation*}
+as Poisson's ratio $\nu$ must obey $-1 < \nu < 0.5$ for the isotropic materials under consideration for this project \cite{Mott09}. Therefore
+\begin{equation*}
+	a(\bm{u,u})
+	\ge \iint_\Omega \frac{E}{1-\nu^2} \left\{
+		\nu \left(  \p{u_x}{x} + \p{u_y}{y} \right)^2
+		+ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)^2
+	\right\} \, dA
+	\ge 0
+\end{equation*}
+assuming that $\nu > 0$ as the integrand will always be positive. Indeed, $0.2 < \nu < 0.5$ for the vast majority of engineering materials \cite{Mott09}, and $\nu = 0.31$ in our case, so the weak form is certainly positive semidefinite, $a(\bm{u,u}) \ge 0$, for the purposes of this project.
 
 \subsection{Discretization of the weak form}
 We will discretize the weak form over the square domain $\Omega = [-1,1]\times[-1,1]$. We'll begin by expressing our variables of interest $\bm{u}$ and test functions $\bm{g}$ in terms of a set of bilinear basis functions
@@ -515,11 +531,14 @@ which holds true as long as the domain of integration includes the point $(x,y) 
 \subsection{Single square element beam under stress}
 
 \begin{thebibliography}{9}
-	\bibitem{Tchonkova011}
-	Tchonkova, M. and Sture, S., (2001). Classical and recent formulations for linear elasticity. \textit{Archives of Computational Methods in Engineering} \textbf{8}(1), pp. 41--74.
-	
-	\bibitem{mathworld}
-	Rowland, T. Symmetric Bilinear Form. From MathWorld--A Wolfram Web Resource, created by Eric W. Weisstein. \url{http://mathworld.wolfram.com/SymmetricBilinearForm.html}
+\bibitem{Tchonkova011}
+Tchonkova, M. and Sture, S., (2001). Classical and recent formulations for linear elasticity. \textit{Archives of Computational Methods in Engineering} \textbf{8}(1), pp. 41--74.
+
+\bibitem{mathworld}
+Rowland, T. Symmetric Bilinear Form. From MathWorld--A Wolfram Web Resource, created by Eric W. Weisstein. \url{http://mathworld.wolfram.com/SymmetricBilinearForm.html}
+
+\bibitem{Mott09}
+Mott, P. H., and C. M. Roland, (2009). Limits to Poisson's ratio in isotropic materials. \textit{Physical Review B} \textbf{80}(13), 132104.
 \end{thebibliography}
 
 \end{document}
