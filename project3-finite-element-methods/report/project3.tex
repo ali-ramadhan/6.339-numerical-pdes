@@ -233,6 +233,7 @@ A bilinear form $a(u,v)$ that is \emph{symmetric} obeys the property $a(u,v) = a
   \right\} \, dA \\
   \hspace{3.5em} = a(\bm{u,g}) \hfill
 \end{multline}
+and thus $a(\bm{g,u})$ is indeed symmetric.
 
 A bilinear form that is \emph{positive semidefinite} obeys the property $a(u,v) \ge 0$ for all $u,v$. Additionally, symmetric bilinear forms that satisfy $a(u,u) \ge 0$ for all nonzero $u$ satisfy the positive semidefinite property as well \cite{mathworld}. We thus see that
 \begin{multline}
@@ -534,7 +535,7 @@ or that $a_{+-} = 0$ and $a_{++} = 0$ as $g_{+-}(-1,y) = 0$ and $g_{++}(-1,y) = 
 	\iint_\Omega g_{-+} f_y \, dA
 \end{pmatrix}
 \end{equation}
-which we get just by looking to the top-left $4\times4$ block in $\mathcal{M}$.
+which we get just by looking at the top-left $4\times4$ block in $\mathcal{M}$.
 
 \section{Solving the linear elasticity equation for a beam under stress}
 To exert a force at a specific point $(x,y) = (1,0)$ we will express the force vector $\bm{f}$ using a Dirac-delta function such that
@@ -543,9 +544,13 @@ To exert a force at a specific point $(x,y) = (1,0)$ we will express the force v
 \end{equation}
 where $F_\delta = \SI{8e4}{\N}$ is the magnitude of the force. Then using the following property of the Dirac-delta function
 \begin{equation}
-  \int_{-\infty}^{\infty} \int_{-\infty}^{\infty} f(x,y) \delta(x-a) \delta(y-b) \, dx \, dy = f(a,b)
+  \iint_\Omega f(x,y) \delta(x-a) \delta(y-b) \, dx \, dy =
+  \begin{cases}
+  	f(a,b), \quad &\mathrm{if} \; (a,b) \in \Omega \\
+  	0, \quad &\mathrm{otherwise}
+  \end{cases}
 \end{equation}
-which holds true as long as the domain of integration includes the point $(x,y) = (a,b)$, we can write the components of the right hand side vector $\bm{b}$ as
+we can write the components of the right hand side vector $\bm{b}$ as
 \begin{equation} \label{eq:RHSintegral}
   \iint_\Omega g_{ij} f_x \, dA = 0, \quad 
   \iint_\Omega g_{ij} f_y \, dA = -F_\delta g_{ij}(1,0)
