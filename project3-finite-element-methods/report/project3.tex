@@ -205,6 +205,50 @@ and
 \end{equation}
 
 \subsubsection*{Proof for the symmetric and positive-definiteness of the weak form}
+A bilinear form $a(u,v)$ that is \emph{symmetric} obeys the property $a(u,v) = a(v,u)$ for all $u,v$. To see that our blinear form $a(\bm{u,g})$ from \eqref{eq:aug} is symmetric, we can explicitly compute
+\begin{multline}
+a(\bm{g,u}) =
+\iint_\Omega \frac{E}{1-\nu^2} \left\{
+\p{u_x}{x} \left( \p{g_x}{x} + \nu\p{g_y}{y} \right)
++ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)
+\left( \p{g_x}{y} + \p{g_y}{x} \right) \right. \\ \left.
++ \p{u_y}{y} \left(\nu\p{g_x}{x} + \p{g_y}{y} \right)
+\right\} \, dA \\
+= \iint_\Omega \frac{E}{1-\nu^2} \left\{
+\p{u_x}{x} \p{g_x}{x} + \nu \p{u_x}{x} \p{g_y}{y}
++ \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{x} \right)
+\left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
++ \nu\p{u_y}{y}\p{g_x}{x} + \p{u_y}{y}\p{g_y}{y}
+\right\} \, dA \\
+=   \iint_\Omega \frac{E}{1-\nu^2} \left\{
+\p{g_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
++ \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{x} \right)
+\left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
++ \p{g_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
+\right\} \, dA \\
+\hspace{3.5em} = a(\bm{u,g}) \hfill
+\end{multline}
+
+A bilinear form that is \emph{positive semidefinite} obeys the property $a(u,v) \ge 0$ for all $u,v$. Additionally, symmetric bilinear forms that satisfy $a(u,u) \ge 0$ for all nonzero $u$ satisfy the positive semidefinite property as well \cite{mathworld}. We thus see that
+\begin{multline}
+a(\bm{u,u}) =
+\iint_\Omega \frac{E}{1-\nu^2} \left\{
+\p{u_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
++ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)
+\left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
++ \p{u_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
+\right\} \, dA \\
+= \iint_\Omega \frac{E}{1-\nu^2} \left\{
+\p{u_x}{x} \p{u_x}{x} + \nu\p{u_x}{x}\p{u_y}{y}
++ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)^2 
++ \nu\p{u_y}{y}\p{u_x}{x} + \p{u_y}{y} \p{u_y}{y}
+\right\} \, dA \\
+= \iint_\Omega \frac{E}{1-\nu^2} \left\{
+\left( \p{u_x}{x} \right)^2 + 2\nu\p{u_y}{y}\p{u_x}{x} + \left( \p{u_y}{y} \right)^2
++ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)^2
+\right\} \, dA \\
+\end{multline}
+
 
 \subsection{Discretization of the weak form}
 We will discretize the weak form over the unit square $\Omega = [-1,1]\times[-1,1]$. We'll begin by expressing our variables of interest $\bm{u}$ and test functions $\bm{g}$ in terms of a set of bilinear basis functions
