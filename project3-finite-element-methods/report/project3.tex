@@ -112,16 +112,17 @@ In our case we are given the strain-displacement relations and the constitutive 
 \p{u_y}{y}
 \end{pmatrix}
 \end{equation}
-where $E$ is the \emph{Young's modulus} and $\nu$ the \emph{Poisson ratio} of the material.
-
-\begin{gather}
-  \sigma_{xx} = \frac{E}{1-\nu^2} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right) \nonumber \\
+where $E$ is the \emph{Young's modulus} and $\nu$ the \emph{Poisson ratio} of the material. Expanding out the matrix equation and noticing that $\sigma_{xy} = \sigma_{yx}$ as expected due to the symmetric nature of the stress tensor, we obtain relations between $\bm{\sigma}$ and the spatial derivatives of $\bm{u}$
+\begin{equation} \label{eq:sigmaComp}
+\begin{gathered}
+  \sigma_{xx} = \frac{E}{1-\nu^2} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right) \\
   \sigma_{yy} = \frac{E}{1-\nu^2} \left( \nu\p{u_x}{x} + \p{u_y}{y} \right) \\
-  \sigma_{xy} = \sigma_{yx} = \frac{E}{1-\nu^2} \left( \frac{1-\nu}{2} \right) \left(\p{u_x}{y} + \p{u_y}{x} \right) \nonumber
-\end{gather}
+  \sigma_{xy} = \sigma_{yx} = \frac{E}{1-\nu^2} \left( \frac{1-\nu}{2} \right) \left(\p{u_x}{y} + \p{u_y}{x} \right)
+\end{gathered}
+\end{equation}
 
 \section{Mathematical foundations}
-Before we can develop a solution method or numerical scheme utilizing the finite element method, we will first express the partial differential equations in a \emph{weak formulation} admitting \emph{weak solutions} that may not be sufficiently differentiable to satisfy the strong formulation yet satisfy the weak formulation and represent physically realizable solutions. For the linear elasticity equation in particular, it so happens that the weak and strong formulations are actually equivalent.
+Before we can develop a solution method or numerical scheme utilizing the finite element method, we will first express the partial differential equations in a \emph{weak formulation} admitting \emph{weak solutions} that may not be sufficiently differentiable to satisfy the strong formulation yet satisfy the weak formulation and represent physically realizable solutions. For the linear elasticity equation in particular, it so happens that the weak and strong formulations are actually equivalent \cite{Tchonkova011}.
 
 \subsection{Derivation of the weak form of the linear elasticity equation}
 Expanding the linear elasticity equation \eqref{eq:linElas} yields two partial differential equations
@@ -131,146 +132,150 @@ Expanding the linear elasticity equation \eqref{eq:linElas} yields two partial d
   \p{\sigma_{yx}}{x} + \p{\sigma_{yy}}{y} + f_y = 0
 \end{gather}
 \end{subequations}
-which we can write more compactly as
-\begin{equation} \label{eq:linElasij}
-  \p{\sigma_{ij}}{x} + f_j = 0, \quad j=1,2
-\end{equation}
-where summation over the repeated index $i=1,2$ is implied as per the Einstein summation convention. The subscript 1 corresponds to the $x$ coordinate while $2$ corresponds to the $y$ coordinate.
+which we can write more compactly
+\begin{equation*} \label{eq:linElasij}
+  \p{\sigma_{jx}}{x} + \p{\sigma_{jy}}{y} + f_j = 0, \quad j=1,2
+\end{equation*}
+where $j=1,2$ or $j=x,y$ indexes the two equations so that the subscript 1 corresponds to the $x$ coordinate while $2$ corresponds to the $y$ coordinate.
 
-We will now multiply \eqref{eq:linElasij} by a \emph{test function} $\bm{g} = (g_1,g_2)$ and integrate over the domain of the problem $\Omega$
-\begin{equation}
-  \iint_\Omega g_k(x,y) \left( \p{\sigma_{ij}}{x} + f_j \right) \, d\Omega = 0
-\end{equation}
-We note that $\bm{g} \in \mathcal{X}$ where $\mathcal{X}$ is a Sobolev space. In particular, $\mathcal{X} = H^1_\Omega$, the Hilbert space of once-differentiable functions.
+We will now multiply \eqref{eq:linElasij} by a \emph{test function} $\bm{g} = (g_x,g_y)$ and integrate over the domain of the problem $\Omega$ to obtain
+\begin{equation*}
+  \iint_\Omega g_j(x,y) \left( \p{\sigma_{jx}}{x} + \p{\sigma_{jy}}{y} + f_j \right) \, dA = 0
+\end{equation*}
+We note that the components of $\bm{g}$ belong to a \emph{Sobolev space} $\mathcal{X}$ so that $\bm{g} \in \mathcal{X}\times\mathcal{X}$. In our particular case we will take $\mathcal{X} = H^1_\Omega$, the Hilbert space of once-differentiable square integrable functions, that is
+\begin{equation*}
+  H^1_\Omega = \left\{ f(x) : \int_\Omega f^2(x) \, dx < \infty, \quad \int_\Omega \left\lVert \nabla\cdot f \right\rVert < \infty \right\}
+\end{equation*}
 
+Then expanding we obtain
+\begin{equation*}
+\iint_\Omega g_j  \left( \p{\sigma_{jx}}{x} + \p{\sigma_{jy}}{y} \right) \, dA + \iint_\Omega g_j f_j \, dA = 0
+\end{equation*}
+where we notice that the first integral's integrand is a divergence of $\bm{\sigma}_j$ and so we can write
+\begin{equation} \label{eq:ph1}
+\iint_\Omega g_j \left( \bm{\nabla \cdot \sigma}_j \right) \, dA + \iint_\Omega g_j f_j \, dA = 0
+\end{equation}
+Now we can make use of \emph{Green's theorem} to rewrite the first term as
+\begin{equation*}
+  \iint_\Omega g_j \left( \bm{\nabla \cdot \sigma}_j \right) \, dA
+  = \int_{\partial\Omega} g_j  \left( \bm{\sigma_j \cdot \hat{n}} \right) \, d\ell
+  - \iint_\Omega \nabla g_j \cdot \bm{\sigma_j} \, dA
+\end{equation*}
+where $\partial\Omega$ denotes the boundary of the domain of integration $\Omega$, $\bm{\hat{n}}$ denotes the unit normal vector pointing to the outside of $\Omega$ along the boundary $\partial\Omega$, and $d\ell$ denotes a line element along $\partial\Omega$ thus making the middle term a line integral. Rearranging the equation we can write \eqref{eq:ph1} as
 \begin{equation}
-\iint_\Omega g_k \p{\sigma_{ij}}{x} \, d\Omega + \iint_\Omega g_k f_j \, d\Omega = 0
+  \int_{\partial\Omega} g_j  \left( \bm{\sigma}_j \cdot \bm{\hat{n}} \right) \, d\ell
+  - \iint_\Omega \nabla g_j \cdot \bm{\sigma_j} \, dA
+  + \iint_\Omega g_j f_j \, dA = 0
 \end{equation}
 
-Noticing that the first term is a divergence of $\bm{\sigma}_j$ we can write
-\begin{equation}
-\iint_\Omega g_k \left( \bm{\nabla \cdot \sigma_j} \right) \, d\Omega + \iint_\Omega g_k f_j \, d\Omega = 0
-\end{equation}
-Now we make use of Green's theorem to rewrite the first term as
-\begin{equation}
-  \iint_\Omega g_k \left( \bm{\nabla \cdot \sigma_j} \right) \, d\Omega
-  = \int_{\partial\Omega} g_k  \left( \bm{\sigma_j \cdot n} \right) \, d\ell
-  - \iint_\Omega \nabla g_k \cdot \bm{\sigma_j} \, d\Omega
-\end{equation}
-so that we get
-\begin{equation}
-  \int_{\partial\Omega} g_k  \left( \bm{\sigma_j \cdot n} \right) \, d\ell
-  - \iint_\Omega \nabla g_k \cdot \bm{\sigma_j} \, d\Omega
-  + \iint_\Omega g_k f_j \, d\Omega = 0
-\end{equation}
-
-Adding the two equations together
-\begin{equation}
+Adding the two equations for $j=1,2$ together we obtain
+\begin{equation} \label{eq:withLI}
     \int_{\partial\Omega} \left( \bm{\sigma}_x n_x + \bm{\sigma}_y n_y \right) \, d\ell
-  - \iint_\Omega \left( \nabla g_x \cdot \bm{\sigma_x} + \nabla g_y \cdot \bm{\sigma_y} \right) \, d\Omega
-  + \iint_\Omega \left( g_x f_x + g_y f_y \right) \, d\Omega = 0
+  - \iint_\Omega \left( \nabla g_x \cdot \bm{\sigma_x} + \nabla g_y \cdot \bm{\sigma_y} \right) \, dA
+  + \iint_\Omega \left( g_x f_x + g_y f_y \right) \, dA= 0
 \end{equation}
-where the first term goes to zero because of the free boundary condition  $\bm{\sigma}_x n_x + \bm{\sigma}_y n_y = 0$. Expanding and rearranging we get
+as both equations equalled zero independently. We notice that the first term goes to zero because of the free boundary condition  $\bm{\sigma}_x n_x + \bm{\sigma}_y n_y = 0$ we are imposing. Expanding the gradient terms and the dot products then further rearranging we get
 \begin{equation}
-  \iint_\Omega \left( \p{g_x}{x}\sigma_{xx} + \p{g_x}{y}\sigma_{xy} + \p{g_y}{y}\sigma_{yx} + \p{g_y}{y}\sigma_{yy} \right) \, d\Omega = \iint_\Omega \left( g_x f_x + g_y f_y \right) \, d\Omega
+  \iint_\Omega \left( \p{g_x}{x}\sigma_{xx} + \p{g_x}{y}\sigma_{xy} + \p{g_y}{x}\sigma_{yx} + \p{g_y}{y}\sigma_{yy} \right) \, dA = \iint_\Omega \left( g_x f_x + g_y f_y \right) \, dA
 \end{equation}
-and plugging in we get
+into which we can substitute the relations for $\sigma_{ij}$ from \eqref{eq:sigmaComp} yielding
 \begin{multline}
   \iint_\Omega \frac{E}{1-\nu^2} \left\{
     \p{g_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
-    + \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{y} \right)
+    + \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{x} \right)
       \left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
     + \p{g_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
-  \right\} \, d\Omega
-  - \iint_\Omega \left( g_x f_x + g_y f_y \right) \, d\Omega
+  \right\} \, dA
+  - \iint_\Omega \left( g_x f_x + g_y f_y \right) \, dA
   = 0
 \end{multline}
-and so we have our weak form
-\begin{equation}
+
+Tgys we have our weak formulation for the linear elasticity equation for our particular case which takes on the form
+\begin{equation} \label{eq:weakForm}
   a(\bm{u,g}) + \ell(\bm{g}) = 0 \quad \forall \bm{u,g} \in H^1_\Omega \times H^1_\Omega
 \end{equation}
-where
-\begin{multline}
+where $a(\bm{u,g})$ is a bilinear form and
+\begin{multline} \label{eq:aug}
   a(\bm{u,g}) =
   \iint_\Omega \frac{E}{1-\nu^2} \left\{
     \p{g_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
-    + \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{y} \right)
+    + \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{x} \right)
       \left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
     + \p{g_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
-  \right\} \, d\Omega
+  \right\} \, dA
 \end{multline}
 and
-\begin{equation}
-  \ell(\bm{g}) = - \iint_\Omega \left( g_x f_x + g_y f_y \right) \, d\Omega
+\begin{equation} \label{eq:lg}
+  \ell(\bm{g}) = - \iint_\Omega \left( g_x f_x + g_y f_y \right) \, dA
 \end{equation}
 
 \subsubsection*{Proof for the symmetric and positive-definiteness of the weak form}
 A bilinear form $a(u,v)$ that is \emph{symmetric} obeys the property $a(u,v) = a(v,u)$ for all $u,v$. To see that our blinear form $a(\bm{u,g})$ from \eqref{eq:aug} is symmetric, we can explicitly compute
 \begin{multline}
-a(\bm{g,u}) =
-\iint_\Omega \frac{E}{1-\nu^2} \left\{
-\p{u_x}{x} \left( \p{g_x}{x} + \nu\p{g_y}{y} \right)
-+ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)
-\left( \p{g_x}{y} + \p{g_y}{x} \right) \right. \\ \left.
-+ \p{u_y}{y} \left(\nu\p{g_x}{x} + \p{g_y}{y} \right)
-\right\} \, dA \\
-= \iint_\Omega \frac{E}{1-\nu^2} \left\{
-\p{u_x}{x} \p{g_x}{x} + \nu \p{u_x}{x} \p{g_y}{y}
-+ \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{x} \right)
-\left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
-+ \nu\p{u_y}{y}\p{g_x}{x} + \p{u_y}{y}\p{g_y}{y}
-\right\} \, dA \\
-=   \iint_\Omega \frac{E}{1-\nu^2} \left\{
-\p{g_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
-+ \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{x} \right)
-\left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
-+ \p{g_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
-\right\} \, dA \\
-\hspace{3.5em} = a(\bm{u,g}) \hfill
+  a(\bm{g,u}) =
+  \iint_\Omega \frac{E}{1-\nu^2} \left\{
+    \p{u_x}{x} \left( \p{g_x}{x} + \nu\p{g_y}{y} \right)
+      + \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)
+      \left( \p{g_x}{y} + \p{g_y}{x} \right) \right. \\ \left.
+    + \p{u_y}{y} \left(\nu\p{g_x}{x} + \p{g_y}{y} \right)
+  \right\} \, dA \\
+  = \iint_\Omega \frac{E}{1-\nu^2} \left\{
+  \p{u_x}{x} \p{g_x}{x} + \nu \p{u_x}{x} \p{g_y}{y}
+  + \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{x} \right)
+  \left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
+  + \nu\p{u_y}{y}\p{g_x}{x} + \p{u_y}{y}\p{g_y}{y}
+  \right\} \, dA \\
+  =   \iint_\Omega \frac{E}{1-\nu^2} \left\{
+  \p{g_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
+  + \frac{1-\nu}{2} \left( \p{g_x}{y} + \p{g_y}{x} \right)
+  \left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
+  + \p{g_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
+  \right\} \, dA \\
+  \hspace{3.5em} = a(\bm{u,g}) \hfill
 \end{multline}
 
 A bilinear form that is \emph{positive semidefinite} obeys the property $a(u,v) \ge 0$ for all $u,v$. Additionally, symmetric bilinear forms that satisfy $a(u,u) \ge 0$ for all nonzero $u$ satisfy the positive semidefinite property as well \cite{mathworld}. We thus see that
 \begin{multline}
-a(\bm{u,u}) =
-\iint_\Omega \frac{E}{1-\nu^2} \left\{
-\p{u_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
-+ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)
-\left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
-+ \p{u_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
-\right\} \, dA \\
-= \iint_\Omega \frac{E}{1-\nu^2} \left\{
-\p{u_x}{x} \p{u_x}{x} + \nu\p{u_x}{x}\p{u_y}{y}
-+ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)^2 
-+ \nu\p{u_y}{y}\p{u_x}{x} + \p{u_y}{y} \p{u_y}{y}
-\right\} \, dA \\
-= \iint_\Omega \frac{E}{1-\nu^2} \left\{
-\left( \p{u_x}{x} \right)^2 + 2\nu\p{u_y}{y}\p{u_x}{x} + \left( \p{u_y}{y} \right)^2
-+ \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)^2
-\right\} \, dA \\
+  a(\bm{u,u}) =
+  \iint_\Omega \frac{E}{1-\nu^2} \left\{
+    \p{u_x}{x} \left( \p{u_x}{x} + \nu\p{u_y}{y} \right)
+      + \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)
+      \left( \p{u_x}{y} + \p{u_y}{x} \right) \right. \\ \left.
+    + \p{u_y}{y} \left(\nu\p{u_x}{x} + \p{u_y}{y} \right)
+  \right\} \, dA \\
+  = \iint_\Omega \frac{E}{1-\nu^2} \left\{
+  \p{u_x}{x} \p{u_x}{x} + \nu\p{u_x}{x}\p{u_y}{y}
+  + \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)^2 
+  + \nu\p{u_y}{y}\p{u_x}{x} + \p{u_y}{y} \p{u_y}{y}
+  \right\} \, dA \\
+  = \iint_\Omega \frac{E}{1-\nu^2} \left\{
+  \left( \p{u_x}{x} \right)^2 + 2\nu\p{u_y}{y}\p{u_x}{x} + \left( \p{u_y}{y} \right)^2
+  + \frac{1-\nu}{2} \left( \p{u_x}{y} + \p{u_y}{x} \right)^2
+  \right\} \, dA \\
 \end{multline}
 
-
 \subsection{Discretization of the weak form}
-We will discretize the weak form over the unit square $\Omega = [-1,1]\times[-1,1]$. We'll begin by expressing our variables of interest $\bm{u}$ and test functions $\bm{g}$ in terms of a set of bilinear basis functions
-\begin{gather}
+We will discretize the weak form over the square domain $\Omega = [-1,1]\times[-1,1]$. We'll begin by expressing our variables of interest $\bm{u}$ and test functions $\bm{g}$ in terms of a set of bilinear basis functions
+\begin{equation}
+\begin{gathered}
 g_{--}(x,y) = \frac{(1+x)(1+y)}{4}, \quad g_{-+}(x,y) = \frac{(1+x)(1-y)}{4}\\
 g_{+-}(x,y) = \frac{(1-x)(1+y)}{4}, \quad g_{++}(x,y) = \frac{(1-x)(1-y)}{4}
-\end{gather}
+\end{gathered}
+\end{equation}
 As we are expressing both $\bm{u}$ and $\bm{g}$ in terms of the same basis functions, we are in effect employing a \emph{Galerkin method}, which is simplified when dealing with a symmetric and positive-definite bilinear weak form $a(\bm{u,g})$.
 
 This allows us to express, for example, $u_x(x,y)$ as a linear combination of the basis functions
 \begin{equation}
   u_x(x,y) = a_{ij}g_{ij}(x,y) \equiv \sumop_{i,j \in \{-,+\}} a_{ij}g_{ij}(x,y)
 \end{equation}
-where summation over the repeated indices $i,j$ is now implied. Doing this for $\bm{u}$ and $\bm{g}$ we will write
+where summation over the repeated indices $i,j$ is now implied. Doing this for each component of $\bm{u}$ and $\bm{g}$ we can write
 \begin{equation}
 \begin{gathered}
   u_x(x,y) = a_{ij}g_{ij}(x,y), \quad u_y(x,y) = b_{ij}g_{ij}(x,y) \\
   g_x(x,y) = c_{ij}g_{ij}(x,y), \quad g_y(x,y) = d_{ij}g_{ij}(x,y)
 \end{gathered}
 \end{equation}
-
-Plugging these into the weak form, we get
+where the $\bm{u}$ components get the $a_{ij}$ and $b_{ij}$ coefficients while the $\bm{g}$ components get the $c_{ij}$ and $d_{ij}$ coefficients. Plugging these into the weak form, we get
 \begin{multline}
   a(\bm{u},\bm{g}) = \frac{E}{1-\nu^2} \iint_\Omega \left\{
     c_{ij}\p{g_{ij}}{x} \left(
@@ -289,15 +294,15 @@ Plugging these into the weak form, we get
     \nu a_{kl}\p{g_{kl}}{x}
     + b_{kl}\p{g_{kl}}{y}
   \right)
-\right\} \, d\Omega
+\right\} \, dA
 \end{multline}
 and
 \begin{equation}
-  \ell(\bm{g}) = -\iint_\Omega \left( c_{ij}g_{ij}f_x + d_{ij}g_{ij} f_y \right) \, d\Omega
+  \ell(\bm{g}) = -\iint_\Omega \left( c_{ij}g_{ij}f_x + d_{ij}g_{ij} f_y \right) \, dA
 \end{equation}
 
 Expanding out the full weak form and factoring out the $c_{ij}$ and $d_{ij}$ coefficients we get
-\begin{multline}
+\begin{multline} \label{eq:ph2}
   \alpha \iint_\Omega \left\{
     c_{ij} \left[
       a_{kl}\G{i}{j}{k}{l}{x}{x} + \nu b_{kl}\G{i}{j}{k}{l}{x}{y}
@@ -309,43 +314,43 @@ Expanding out the full weak form and factoring out the $c_{ij}$ and $d_{ij}$ coe
       + \nu a_{kl}\G{i}{j}{k}{l}{y}{x} + b_{kl}\G{i}{j}{k}{l}{y}{y}
       - \frac{1}{\alpha}g_{ij}f_y
     \right]
-  \right\} \, d\Omega = 0
+  \right\} \, dA = 0
 \end{multline}
-where
+where we have defined
 \begin{equation}
   \alpha = \frac{E}{1-\nu^2}, \quad \beta = \frac{1-\nu}{2}
 \end{equation}
+for brevity.
 
 Noticing that every term is integrated over $\Omega$ and contains a very similar pattern, we will introduce a new rank-6 tensor-like symbol
 \begin{equation}
-  G_{ijkl}^{mn} = \alpha \iint_\Omega \p{g_{ij}}{x_m} \p{g_{kl}}{x_n} d\Omega
+  G_{ijkl}^{mn} = \alpha \iint_\Omega \p{g_{ij}}{x_m} \p{g_{kl}}{x_n} dA
 \end{equation}
-so that we can write
+so that we can write \eqref{eq:ph2} as
 \begin{multline}
     c_{ij} \left[
       a_{kl} G_{ijkl}^{xx} + \nu b_{kl} G_{ijkl}^{xy}
       + \beta a_{kl} G_{ijkl}^{yy} + \beta b_{kl} G_{ijkl}^{yx}
-      - \iint_\Omega \frac{1}{\alpha}g_{ij}f_x \, d\Omega
+      - \iint_\Omega g_{ij}f_x \, dA
     \right] \\
   + d_{ij} \left[
     \beta a_{kl} G_{ijkl}^{xy} + \beta b_{kl} G_{ijkl}^{xx}
     + \nu a_{kl} G_{ijkl}^{yx} + b_{kl} G_{ijkl}^{yy}
-    - \iint_\Omega \frac{1}{\alpha}g_{ij}f_y \, d\Omega
+    - \iint_\Omega g_{ij}f_y \, dA
   \right] = 0
 \end{multline}
-
 However, $c_{ij}$ and $d_{ij}$ are the linear combination coefficients of the arbitrary test function $\bm{g}$. As this function must hold for all $\bm{g} \in H^1_\Omega$, it must also hold for all $c_{ij}$ and $d_{ij}$ and thus the terms inside the square brackets must vanish. This finally yields a set of 8 linear equations for the 8 coefficients $a_{ij}$ and $b_{ij}$ we desire to solve in order to find $u_x(x,y)$ and $u_y(x,y)$ in terms of the bilinear basis functions $g_{ij}(x,y)$
 \begin{subequations}
 \begin{gather}
   a_{kl} \left( G_{ijkl}^{xx} + \beta G_{ijkl}^{yy} \right)
     + b_{kl} \left( \nu G_{ijkl}^{xy} + \beta b_{kl} G_{ijkl}^{yx} \right)
-    = \iint_\Omega \frac{1}{\alpha}g_{ij}f_x \, d\Omega \\
+    = \iint_\Omega g_{ij}f_x \, dA \\
   a_{kl} \left( \beta G_{ijkl}^{xy} + \nu G_{ijkl}^{yx} \right)
     + b_{kl} \left( \beta G_{ijkl}^{xx} + G_{ijkl}^{yy} \right)
-    = \iint_\Omega \frac{1}{\alpha}g_{ij}f_y \, d\Omega
+    = \iint_\Omega g_{ij}f_y \, dA
 \end{gather}
 \end{subequations}
-Recall that summation over $k,l \in \{-,+\}$ is implied and that we get an equation for each $i,j \in \{-,+\}$ which index the equations. For example, expanding the first equation for $i=-,j=-$ yields one of the eight linear equations for $a_{ij}$ and $b_{ij}$
+Recall that summation over $k,l \in \{-,+\}$ is implied and that we get an equation for each $i,j \in \{-,+\}$ which together index the equations. For example, expanding the first equation for $(i,j) =(-,-)$ yields one of the eight linear equations for $a_{ij}$ and $b_{ij}$
 \begin{equation}
 \begin{aligned}
   & a_{--} \left( G_{----}^{xx} + \beta G_{----}^{yy} \right)
@@ -356,7 +361,7 @@ Recall that summation over $k,l \in \{-,+\}$ is implied and that we get an equat
   + b_{+-} \left( \nu G_{--+-}^{xy} + \beta G_{--+-}^{yx} \right)  \\
   + \, & a_{++} \left( G_{--++}^{xx} + \beta G_{--++}^{yy} \right)
   + b_{++} \left( \nu G_{--++}^{xy} + \beta G_{--++}^{yx} \right)
-  = \frac{1}{\alpha} \iint_\Omega g_{--}f_x \, d\Omega
+  = \iint_\Omega g_{--}f_x \, dA
 \end{aligned}
 \end{equation}
 
@@ -376,7 +381,7 @@ where
       b_{++}
     \end{pmatrix}
   , \quad
-  \bm{b} = \frac{1}{\alpha} \iint_\Omega
+  \bm{b} = \iint_\Omega
     \begin{pmatrix}
       g_{--}f_x \\
       g_{--}f_y \\
@@ -385,7 +390,7 @@ where
       \cdots \\
       g_{++}f_y
     \end{pmatrix}  
-  \, d\Omega
+  \, dA
 \end{equation}
 so that we may solve for the coefficients $\bm{a}$ like $\bm{a} = \mathcal{M}^{-1}\bm{b}$. With 8 equations for 8 unknowns and an inhomogenous right hand side, we have a full $8\times8$ matrix $\mathcal{M}$ but patterns can be found. The reason we ordered the coefficients in $\bm{a}$ as $a_{--}, b_{--}, a_{-+}, b_{-+}, \cdots, b_{++}$ was so that each $2\times2$ block in $\mathcal{M}$ takes on the form
 \begin{equation}
