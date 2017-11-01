@@ -482,6 +482,11 @@ and our weak formulation is not modified mathematically at all. However, the Sob
 which now forms an \emph{affine space} as we saw in class.
 
 \subsection{Imposing Dirchlet boundary conditions on the left boundary}
+If we impose Dirchlet boundary conditions on the left boundary, $x=-1$, $-1 \le y \le 1$, then we must have that
+\begin{equation*}
+u_x(-1,y) = a_{ij}g_{ij}(-1,y) = a_{+-}g_{+-}(-1,y) + a_{++}g_{++}(-1,y) = 0
+\end{equation*}
+or that $a_{+-} = 0$ and $a_{++} = 0$ as $g_{+-}(-1,y) = 0$ and $g_{++}(-1,y) = 0$. Similarly, imposing that $u_y(-1,y) = 0$ we get $b_{+-} = 0$ and $b_{++} = 0$. Since we now know four of the coefficients, we just need to solve for the other four, which leaves us with a linear system of four equations for four unknowns.
 
 \section{Solving the linear elasticity equation for a beam under stress}
 To exert a force at a specific point $(x,y) = (1,0)$ we will express the force vector $\bm{f}$ using a Dirac-delta function such that
