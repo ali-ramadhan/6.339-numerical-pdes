@@ -14,6 +14,7 @@
 \usepackage{float}
 \usepackage{empheq}
 \usepackage[most]{tcolorbox}
+\usepackage{subcaption}
 
 % Sexy yellow highlighted boxed equations!
 \newtcbox{\mymath}[1][]{%
@@ -529,6 +530,27 @@ which holds true as long as the domain of integration includes the point $(x,y) 
 \end{equation}
 
 \subsection{Single square element beam under stress}
+
+\begin{figure}[h!]
+	\centering
+	\begin{subfigure}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{q2a_surf_ux.png}
+	\end{subfigure}%
+	\begin{subfigure}{.5\textwidth}
+		\centering
+		\includegraphics[width=\linewidth]{q2a_surf_uy.png}
+	\end{subfigure}
+	\caption{Deflection of the single square element beam in the $x$-direction, $u_x(x,y)$ (in units of \SI{}{\micro\m}) is shown on the left with deflection in the $y$-direction, $u_y(x,y)$ (in units of \SI{}{\micro\m}) on the right.}
+	\label{fig:q2a_ux_uy}
+\end{figure}
+
+\begin{figure}[h!]
+	\centering
+	\includegraphics[width=0.7\linewidth]{q2a_plot.png}
+	\caption{Deflection of the single square element beam along the middle of the beam ($y=0$) in the $x$-direction, $u_x(x,0)$ and the deflection along the middle of the beam in the $y$-direction, $u_y(x,0)$.}
+	\label{fig:q2a_plot}
+\end{figure}
 
 \begin{thebibliography}{9}
 \bibitem{Tchonkova011}
