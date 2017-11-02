@@ -17,10 +17,10 @@ g_ij = {@(x,y) (1+x).*(1+y)./4, @(x,y) (1+x).*(1-y)./4;  % g_--, g_-+
         @(x,y) (1-x).*(1+y)./4, @(x,y) (1-x).*(1-y)./4}; % g_+-, g_++
 
 % Generalized basis functions over the domain [x0-a,x0+a]x[y0-b,y0+b]
-g_ij_gen = {@(x,y,x0,y0,a,b)  (x-(x0-a))*(y-(y0-b))/(4*a*b), ...
-            @(x,y,x0,y0,a,b) -(x-(x0+a))*(y-(y0-b))/(4*a*b);
-            @(x,y,x0,y0,a,b) -(x-(x0-a))*(y-(y0+b))/(4*a*b), ...
-            @(x,y,x0,y0,a,b)  (x-(x0+a))*(y-(y0+b))/(4*a*b)};
+g_ij_gen = {@(x,y,x0,y0,a,b)  (x-(x0-a)).*(y-(y0-b))./(4*a*b), ...
+            @(x,y,x0,y0,a,b) -(x-(x0+a)).*(y-(y0-b))./(4*a*b);
+            @(x,y,x0,y0,a,b) -(x-(x0-a)).*(y-(y0+b))./(4*a*b), ...
+            @(x,y,x0,y0,a,b)  (x-(x0+a)).*(y-(y0+b))./(4*a*b)};
     
 % Function handles for the x-derivatives of the basis functions g_ij.
 % Note: Returned function handles are still multivariate (x,y) to remain
@@ -100,7 +100,7 @@ N = 10;
 % Assemble the block-diagonal matrix element by element.
 M2b = zeros(4*(N+1), 4*(N+1));
 for n=1:N
-    x0 = 2*n-1;
+    x0 = 0; %2*n-1;
     y0 = 0;
     a = 1;
     b = 1;
@@ -117,12 +117,12 @@ for n=1:N
     % to different elements overlap correctly.
     M2 = fliplr(flipud(M2));
     
-    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = M2;
+    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = M2b(4*n-3:4*n+4, 4*n-3:4*n+4) + M2;
 end
 
 % Imposing the u_x = u_y = 0 BC at the left wall.
-M2b(1:4,1:4) = zeros(4,4);
-M2b(5:8,1:4) = zeros(4,4);
+% M2b(1:4,1:4) = zeros(4,4);
+% M2b(5:8,1:4) = zeros(4,4);
 M2b(1:4,5:8) = zeros(4,4);
 
 x0 = 2*N-1;
@@ -156,7 +156,7 @@ for n=1:N
     aij = a_n(1:2:7);
     bij = a_n(2:2:8);
  
-    x0 = 2*n-1;
+    x0 = 0; %2*n-1;
     y0 = 0;
     a = 1;
     b = 1;
