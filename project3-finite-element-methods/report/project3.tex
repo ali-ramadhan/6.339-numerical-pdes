@@ -609,7 +609,32 @@ where the other terms in the linear combination vanish as $g^n_{+-}(2n,y) = 0$, 
 \end{equation}
 as an identical condition holds for the $u_y(x,y)$ deflection field and the $b_{ij}$ coefficients between elements $n$ and $n+1$.
 
-To impose these continuity conditions we will use a clever trick. We notice that since four of the coefficients are \emph{shared} between each set of elements, we do not need to solve for both separately. Instead we will only solve for one of them. We will do this by orienting our $\mathcal{M}$ matrix appropriately for each element and overlapping them such that when we construct the full system of linear equations we do not duplicate any equation or solve for any coefficient more times than needed. Since the $(-,-)$ and $(-,+)$ terms in element $n$ match the $(+,-)$ and $(+,+)$ terms in element $n+1$, we 
+To impose these continuity conditions we will use a clever trick. We notice that since four of the coefficients are \emph{shared} between each set of elements, we do not need to solve for both separately. Instead we will only solve for one of them. We will do this by orienting our $\mathcal{M}$ matrix appropriately for each element and overlapping them such that when we construct the full system of linear equations we do not duplicate any equation or solve for any coefficient more times than needed. Since the $(-,-)$ and $(-,+)$ terms in element $n$ match the $(+,-)$ and $(+,+)$ terms in element $n+1$, we can place the $(-,-)$ and $(-,+)$ terms in the bottom rows of $\mathcal{M}$ for each element and the $(+,-)$ and $(+,+)$ terms in the top rows of $\mathcal{M}$ for the next element. This way each element only contributes four equations and we are left with a $4(N+1)\times4(N+1)$ system of linear equations, or a $4N\times4N$ if we account for the fact that we know four of the coefficients are zero on the left boundary.
+
+The vector of coefficients now takes the form
+\begin{equation}
+\bm{a} =
+\begin{pmatrix}
+	a^1_{++} = & 0 \\
+	b^1_{++} = & 0 \\
+	a^1_{+-} = & 0 \\
+	b^1_{+-} = & 0 \\
+	a^1_{-+} = & a^2{++} \\
+	b^1_{-+} = & b^2{++} \\
+	a^1_{--} = & a^2{+-} \\
+	b^1_{--} = & a^2{+-} \\
+	\cdots \\
+	b^N{--}
+\end{pmatrix}
+\end{equation}
+which means we must orient our $\mathcal{M}$ matrix correctly such that all the matrices overlap correctly. To get the rows and columns in the correct order, this corresponds to flipping $\mathcal{M}$ upside-down and sideways, which is equivalent to rotating the elements by $\SI{90}{\degree}$. Figure \ref{fig:M2b_spy} shows the block diagonal structure of the final assembled matrix.
+
+\begin{figure}[!htb]
+	\centering
+	\includegraphics[width=0.7\linewidth]{M2b_spy.png}
+	\caption{Block diagonal structure of the assembled matrix system for the case of $N=10$ elements.}
+	\label{fig:M2b_spy}
+\end{figure}
 
 \clearpage
 \begin{thebibliography}{9}
