@@ -185,7 +185,6 @@ M = 8;
 
 % Assemble the block-tridiagonal matrix.
 M2c = zeros((M-1)*4*(N+1), (M-1)*4*(N+1));
-b2c = zeros((M-1)*4*(N+1), 1);
 for m=1:M
     for n=1:N
         x0 = 0;
@@ -242,15 +241,11 @@ g_12_gen = g_ij_gen{1,2};
 g_21_gen = g_ij_gen{2,1};
 g_22_gen = g_ij_gen{2,2};
 
-b2cn = zeros(4*N+4,1);
-b2cn(end)   = -F_delta * g_11_gen(2*N,0,x0,y0,a,b);
-b2cn(end-2) = -F_delta * g_12_gen(2*N,0,x0,y0,a,b);
-b2cn(end-4) = -F_delta * g_21_gen(2*N,0,x0,y0,a,b);
-b2cn(end-6) = -F_delta * g_22_gen(2*N,0,x0,y0,a,b);
-b2c = [b2c; b2cn];
-
-size(M2c)
-size(b2c)
+b2c = zeros((M-1)*4*(N+1), 1);
+b2c(end)   = -F_delta * g_11_gen(2*N,0,x0,y0,a,b);
+b2c(end-2) = -F_delta * g_12_gen(2*N,0,x0,y0,a,b);
+b2c(end-4) = -F_delta * g_21_gen(2*N,0,x0,y0,a,b);
+b2c(end-6) = -F_delta * g_22_gen(2*N,0,x0,y0,a,b);
 
 end
 

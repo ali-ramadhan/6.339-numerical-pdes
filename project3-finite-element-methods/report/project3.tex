@@ -472,17 +472,32 @@ Integrating each element of $\mathcal{M}$ from Eq. \eqref{eq:MmatrixB} and symbo
 	- \frac{\beta}{4} - \frac{\nu}{4} &  - \frac{\beta}{6} - \frac{1}{6} &   \frac{\beta}{4} - \frac{\nu}{4} & \frac{1}{6} - \frac{\beta}{3} &   \frac{\nu}{4} - \frac{\beta}{4} & \frac{\beta}{6} - \frac{1}{3} &   \frac{\beta}{4} + \frac{\nu}{4} & \frac{\beta}{3} + \frac{1}{3}
 \end{pmatrix}
 \end{equation}
-where recall that $\beta = (1-\nu)/2$.
+where recall that $\beta = (1-\nu)/2$. We can numerically compute it to get
+\begin{equation}
+\mathcal{M} = 10^{10}
+\begin{pmatrix}
+5.8528 & 2.1377 & 0.6745 & 0.1142 & -3.6009 & -0.1142 & -2.9264 & -2.1377 \\
+2.1377 & 5.8528 & -0.1142 & -3.6009 & 0.1142 & 0.6745 & -2.1377 & -2.9264 \\
+0.6745 & -0.1142 & 5.8528 & -2.1377 & -2.9264 & 2.1377 & -3.6009 & 0.1142 \\
+0.1142 & -3.6009 & -2.1377 & 5.8528 & 2.1377 & -2.9264 & -0.1142 & 0.6745 \\
+-3.6009 & 0.1142 & -2.9264 & 2.1377 & 5.8528 & -2.1377 & 0.6745 & -0.1142 \\
+-0.1142 & 0.6745 & 2.1377 & -2.9264 & -2.1377 & 5.8528 & 0.1142 & -3.6009 \\
+-2.9264 & -2.1377 & -3.6009 & -0.1142 & 0.6745 & 0.1142 & 5.8528 & 2.1377 \\
+-2.1377 & -2.9264 & 0.1142 & 0.6745 & -0.1142 & -3.6009 & 2.1377 & 5.8528
+\end{pmatrix}
+\end{equation}
+where every entry is in units of \SI{}{\N/\m^2}.
+
 
 \subsection{Gauss-Legendre quadrature over a general square domain}
 
-Integrating a function $f(x)$ over a more general domain $a \le x \le b$ by Gaussian quadrature can be done by mapping the function from $[a,b]$ to $[-1,1]$
+As we saw in class, integrating a function $f(x)$ over a more general domain $a \le x \le b$ by Gaussian quadrature can be done by mapping the function from $[a,b]$ to $[-1,1]$
 \begin{equation}
 \int_a^b f(x) \, dx = \frac{b-a}{2} \int_{-1}^1 f\left(\frac{b-a}{2}x + \frac{a+b}{2}\right) \, dx
 \end{equation}
 which can now be approximated by the quadrature rule stated above
 \begin{equation}
-\int_a^b f(x) \, dx \approx \frac{b-a}{2} \sumop_{i=1}^n w_i f\left( \frac{b-a}{2}x_i + \frac{a+b}{2} \right)
+\int_a^b f(x) \, dx \approx \sumop_{i=1}^n \frac{b-a}{2} w_i f\left( \frac{b-a}{2}x_i + \frac{a+b}{2} \right)
 \end{equation}
 and so we see that the weights are scaled while the quadrature points are both scaled and shifted.
 
@@ -663,7 +678,7 @@ Assembling the matrix for $N=2,4,10$ elements, we can compute the deflection fie
 \subsection{$N \times M$ element beam under stress}
 Generalizing to $N \times M$ square elements we can still use the generalized basis functions from Eq. \eqref{eq:genBasis}. However, now the deflection field must agree at the boundary between the elements above and below them as well as the elements to their left and right. The condition for continuity in the $x$-direction will remain the same allowing us to continue using the matrix overlapping scheme we employed for the $N$ element rectangular beam. But now there will also be a different condition for continuity in the $y$-direction.
 
-I feel like it would not have been much extra work to code this case up but I did not have enough time I guess. In the end, the assembled matrix will take on a block-tridiagonal form as in figure \ref{fig:M2c_spy}.
+I feel like it would not have been much extra work to code this case up but I did not have enough time I guess. In the end, the assembled matrix will take on a pretty cool block-tridiagonal form as in figure \ref{fig:M2c_spy}.
 
 \begin{figure}[!htb]
   \centering
@@ -671,6 +686,8 @@ I feel like it would not have been much extra work to code this case up but I di
   \caption{Block diagonal structure of the assembled matrix system for the case of $N \times M = 10\times8$ elements.}
   \label{fig:M2c_spy}
 \end{figure}
+
+Even though I didn't finish completely, I definitely feel like I learned a lot here!
 
 \clearpage
 \begin{thebibliography}{9}
