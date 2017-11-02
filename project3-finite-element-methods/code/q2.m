@@ -1,4 +1,4 @@
-function [M2b, ux_N, uy_N] = q2()
+function q2()
 %% Global variables
 global E nu alpha beta dg_ijdx dg_ijdy dg_ijdx_gen dg_ijdy_gen
 
@@ -121,8 +121,6 @@ for n=1:N
 end
 
 % Imposing the u_x = u_y = 0 BC at the left wall.
-% M2b(1:4,1:4) = zeros(4,4);
-% M2b(5:8,1:4) = zeros(4,4);
 M2b(1:4,5:8) = zeros(4,4);
 
 x0 = 2*N-1;
@@ -180,6 +178,80 @@ x = linspace(0,2*N,100*N);
 y = linspace(-1,1,100);
 figure; surf(x,y,ux_N'); title('2(b) u_x'); shading interp; colorbar;
 figure; surf(x,y,uy_N'); title('2(b) u_y'); shading interp; colorbar;
+
+%% Problem 2(c): rectangular beam (composed of NxM elements) under stress
+N = 10;
+M = 8;
+
+% Assemble the block-tridiagonal matrix.
+M2c = zeros((M-1)*4*(N+1), (M-1)*4*(N+1));
+b2c = zeros((M-1)*4*(N+1), 1);
+for m=1:M
+    for n=1:N
+        x0 = 0;
+        y0 = 0;
+        a = 1;
+        b = 1;
+
+        M3 = zeros(8,8);
+        for gamma=1:4
+            for delta=1:4
+                M3(2*gamma-1:2*gamma, 2*delta-1:2*delta) = ...
+                    B_gen(gamma, delta, x0, y0, a, b);
+            end
+        end
+
+        % We want M2 in the order ++, +-, -+, -- so the matrices corresponding
+        % to different elements overlap correctly.
+        M3 = fliplr(flipud(M3));
+        
+        % Imposing the u_x = u_y = 0 BC at the left wall.
+        if n == 1
+            M3(1:4,1:4) = zeros(4,4);
+            M3(1:4,5:8) = zeros(4,4);
+            M3(5:8,1:4) = zeros(4,4);
+        end
+
+        % block diagonal
+        r1 = (m-1)*(4*N-3) + (4*n-3);
+        r2 = (m-1)*(4*N-3) + (4*n+4);
+        c1 = r1;
+        c2 = r2;
+        M2c(r1:r2, c1:c2) = M2c(r1:r2, c1:c2) + M3;
+        
+        % Lower block diagonal
+        if m > 1
+            c1 = r1 - (4*N-3);
+            c2 = r2 - (4*N-3);
+            M2c(r1:r2, c1:c2) = M2c(r1:r2, c1:c2) + M3;
+        end
+        
+        % Upper block diagonal
+        if m < M
+            c1 = r1 + (4*N-3);
+            c2 = r2 + (4*N-3);
+            M2c(r1:r2, c1:c2) = M2c(r1:r2, c1:c2) + M3;
+        end
+    end
+end
+
+x0 = 2*N-1;
+y0 = 0;
+g_11_gen = g_ij_gen{1,1};
+g_12_gen = g_ij_gen{1,2};
+g_21_gen = g_ij_gen{2,1};
+g_22_gen = g_ij_gen{2,2};
+
+b2cn = zeros(4*N+4,1);
+b2cn(end)   = -F_delta * g_11_gen(2*N,0,x0,y0,a,b);
+b2cn(end-2) = -F_delta * g_12_gen(2*N,0,x0,y0,a,b);
+b2cn(end-4) = -F_delta * g_21_gen(2*N,0,x0,y0,a,b);
+b2cn(end-6) = -F_delta * g_22_gen(2*N,0,x0,y0,a,b);
+b2c = [b2c; b2cn];
+
+size(M2c)
+size(b2c)
+
 end
 
 %% Gauss-Legendre quadrature integration
