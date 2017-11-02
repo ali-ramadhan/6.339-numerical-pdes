@@ -658,6 +658,19 @@ Assembling the matrix for $N=2,4,10$ elements, we can compute the deflection fie
   \caption{Deflection of the $N=10$ element beam in the $x$-direction, $u_x(x,y)$ (in \SI{}{\m}) (top) and the deflection in the $y$-direction, $u_y(x,y)$ (in \SI{}{\m}) (bottom).}
   \label{fig:q2b_uxuy_N10}
 \end{figure}
+\clearpage
+
+\subsection{$N \times M$ element beam under stress}
+Generalizing to $N \times M$ square elements we can still use the generalized basis functions from Eq. \eqref{eq:genBasis}. However, now the deflection field must agree at the boundary between the elements above and below them as well as the elements to their left and right. The condition for continuity in the $x$-direction will remain the same allowing us to continue using the matrix overlapping scheme we employed for the $N$ element rectangular beam. But now there will also be a different condition for continuity in the $y$-direction.
+
+I feel like it would not have been much extra work to code this case up but I did not have enough time I guess. In the end, the assembled matrix will take on a block-tridiagonal form as in figure \ref{fig:M2c_spy}.
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.7\linewidth]{q2c_spy.png}
+  \caption{Block diagonal structure of the assembled matrix system for the case of $N \times M = 10\times8$ elements.}
+  \label{fig:M2c_spy}
+\end{figure}
 
 \clearpage
 \begin{thebibliography}{9}
