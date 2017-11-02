@@ -95,9 +95,9 @@ plot(x(end/2,:), ux_xy(end/2,:)', x(end/2,:), uy_xy(end/2,:)');
 legend('u_x(x,0)', 'u_y(x,0)');
 
 %% Problem 2(b): rectangular beam (composed of N elements) under stress
-N = 20;
+N = 10;
 
-% Assemble the block-diagonal matrix.
+% Assemble the block-diagonal matrix element by element.
 M2b = zeros(4*(N+1), 4*(N+1));
 for n=1:N
     x0 = 2*n-1;
@@ -113,10 +113,11 @@ for n=1:N
         end
     end
     
-    % Flip the matrix up/down and left/right to switch the order of the the
-    % coefficients so that the -+ and -- coefficients are in the bottom rows
-    % (in that order). We do this so that we can overlap the matrices.
-    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = flipud(M2);
+    % We want M2 in the order ++, +-, -+, -- so the matrices corresponding
+    % to different elements overlap correctly.
+    M2 = fliplr(flipud(M2));
+    
+    M2b(4*n-3:4*n+4, 4*n-3:4*n+4) = M2;
 end
 
 % Imposing the u_x = u_y = 0 BC at the left wall.
@@ -144,7 +145,6 @@ b2b(end-6) = -F_delta * g_22_gen(2*N,0,x0,y0,a,b);
 % that we know must be zero to satisfy the BCs.
 a2b = zeros(4*N+4,1);
 a2b(5:end) = M2b(5:end, 5:end) \ b2b(5:end);
-% a2b = M2b \ b2b;
 
 ux_N = [];
 uy_N = [];
