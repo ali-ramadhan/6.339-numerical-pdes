@@ -1,0 +1,75 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper]{geometry}
+
+\usepackage{graphicx}
+\usepackage{mathpazo}
+
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage{siunitx}
+\usepackage{cancel}
+\usepackage{float}
+\usepackage{empheq}
+\usepackage[most]{tcolorbox}
+\usepackage{subcaption}
+
+% Sexy yellow highlighted boxed equations!
+\newtcbox{\mymath}[1][]{%
+  nobeforeafter, math upper, tcbox raise base,
+  enhanced, colframe=black!30!black,
+  colback=yellow!30, boxrule=1pt,
+  #1}
+
+% Hyperlinks with decent looking default colors.
+\usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{
+  colorlinks,
+  linkcolor={red!50!black},
+  citecolor={blue!50!black},
+  urlcolor={blue!80!black}
+}
+
+% For those sexy spaced low small caps from classic-thesis!
+\usepackage{microtype}
+\usepackage{textcase}
+\DeclareRobustCommand{\spacedlowsmallcaps}[1]{%
+  \textls[80]{\scshape\MakeTextLowercase{#1}}%
+}
+
+% Replaced mathpazo \sum symbol with computer modern's.
+\DeclareSymbolFont{cmlargesymbols}{OMX}{cmex}{m}{n}
+\let\sumop\relax
+\DeclareMathSymbol{\sumop}{\mathop}{cmlargesymbols}{"50}
+
+% Force indent command.
+\newcommand{\forceindent}{\leavevmode{\parindent=1em\indent}}
+
+% Math shortcuts.
+\newcommand\p[2]{\frac{\partial #1}{\partial #2}}
+
+% fancyhdr header and footer.
+\usepackage{fancyhdr}
+\pagestyle{fancy} 
+\fancyhead{}
+\rhead{Ali Ramadhan}
+\lhead{6.339 Project 4---Boundary Element Methods}
+\cfoot{\thepage}
+
+\title{\spacedlowsmallcaps{6.339: Numerical Methods for Partial Differential Equations}\\ \spacedlowsmallcaps{Project four: Boundary Element Methods}}
+\author{Ali Ramadhan$^\text{†}$ (\href{mailto:alir@mit.edu}{\texttt{alir@mit.edu}})}
+\date{\textit{$^\text{†}$Department of Earth, Atmospheric, and Planetary Sciences}}
+
+\renewcommand\thesubsection{\thesection(\alph{subsection})}
+
+\begin{document}
+\maketitle
+
+\section{Gaussian quadrature using the trapezoidal rule}
+
+\subsection{Derivation of the trapezoidal rule error formula}
+
+\end{document}
