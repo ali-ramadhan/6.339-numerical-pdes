@@ -50,6 +50,7 @@
 
 % Math shortcuts.
 \newcommand\p[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
 
 % fancyhdr header and footer.
 \usepackage{fancyhdr}
@@ -71,5 +72,136 @@
 \section{Gaussian quadrature using the trapezoidal rule}
 
 \subsection{Derivation of the trapezoidal rule error formula}
+We wish to derive a formula, or rather, an upper bound on the error in approximating an integral
+\begin{equation}
+  I[f] = \int_a^b f(x) \, dx
+\end{equation}
+via the composite trapezoidal rule
+\begin{equation}
+  \int_a^b f(x) \, dx \approx \frac{b-a}{n} \left[ \frac{f(a) + f(b)}{2} + \sumop_{i=1}^{n-1} f \left( a + i\frac{b-a}{n} \right) \right]
+\end{equation}
+
+We will begin by rewriting the composite trapezoidal rule slightly. Let us define
+\begin{equation}
+  x_i = a + i \frac{b-a}{n}
+\end{equation}
+so that $x_0 = a$ and $x_n = b$. Then
+\begin{equation*}
+ \frac{f(a) + f(b)}{2} + \sumop_{i=1}^{n-1} f \left( a + i\frac{b-a}{n} \right)
+  = \frac{f(x_0) + f(x_n)}{2} + \sumop_{i=1}^{n-1} f \left( x_i \right)
+  = \sumop_{i=1}^{n} \frac{f(x_{i-1}) + f(x_i)}{2}
+\end{equation*}
+and we can rewrite the composite trapezoidal rule as
+\begin{equation}
+\int_a^b f(x) \, dx \approx \frac{b-a}{2n} \sumop_{i=1}^{n} \left[ f(x_{i-1}) + f(x_i) \right]
+\end{equation}
+
+The error is then given by
+\begin{multline*}
+  E[f] = \left\lvert \frac{b-a}{2n} \sumop_{i=1}^n \left[ f(x_{i-1}) + f(x_i) \right] - \int_a^b f(x) \, dx \right\rvert \\
+  = \left\lvert \sumop_{i=1}^n \left\{ \frac{b-a}{2n} \left[ f(x_{i-1}) + f(x_i) \right] - \int_{x_i}^{x_{i+1}} f(x) \, dx \right\} \right\rvert
+  = \left\lvert \sumop_{i=1}^n E_i[f] \right\rvert
+\end{multline*}
+where we split up the integral into $n$ integrals, one over each subinterval $x \in [x_{i}, x_{i+1}]$. We let $c_i = (x_{i} + x_{i+1})/2$ denote the midpoint of the $n^\mathrm{th}$ subinterval. We notice that $(b-a)/n$ is the length of one subinterval and so $(b-a)/2n$ must be the length from the beginning of the interval $x_i$ to the midpoint $c_i$:
+\begin{equation*}
+  x_{i+1} - c_i = x_{i+1} - \frac{x_{i} + x_{i+1}}{2} = \frac{x_{i+1} - x_i}{2}
+  = \frac{1}{2} \left[ a + (i+1)\frac{b-a}{n} - \left( a + i\frac{b-a}{n} \right) \right]
+  = \frac{b-a}{2n}
+\end{equation*}
+Then each term in the sum can be written as
+\begin{equation*}
+  E_i[f]
+  = \frac{b-a}{2n} \left[ f(x_{i-1}) + f(x_i) \right] - \int_{x_i}^{x_{i+1}} f(x) \, dx
+  = (x_{i+1} - c_i) \left[ f(x_{i-1}) + f(x_i) \right] - \int_{x_i}^{x_{i+1}} f(x) \, dx
+\end{equation*}
+At this point we realize we can perform an integration by parts in the reverse direction as 
+\begin{multline*}
+  \int_{x_i}^{x_{i+1}} (x-c_i) f'(x) \, dx
+  = (x-c_i)f(x) \Big\rvert_{x_i}^{x_{i+1}} - \int_{x_i}^{x_{i+1}} f(x) \, dx \\
+  = (x_{i+1}-c_i)f(x_{i+1}) - (x_i-c_i)f(x_i) - \int_{x_i}^{x_{i+1}} f(x) \, dx \\
+  = (x_{i+1}-c_i)f(x_{i+1}) + (x_{i+1}-c_i)f(x_i) - \int_{x_i}^{x_{i+1}} f(x) \, dx \\
+  = (x_{i+1}-c_i)\left[ f(x_{i+1}) + f(x_i) \right] - \int_{x_i}^{x_{i+1}} f(x) \, dx
+\end{multline*}
+where we used the fact that $x_i - c_i = c_i - x_{i+1} = - (x_{i+1} - c_i)$. Therefore the error over the $n^\mathrm{th}$ subinterval can be written as
+\begin{equation*}
+  E_i[f] = \int_{x_i}^{x_{i+1}} (x-c_i) f'(x) \, dx
+\end{equation*}
+
+\subsection{Implementation of the composite trapezoidal rule}
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=\linewidth]{trapezoid_error.png}
+  \caption{The absolute error $E_n[f]$ between the exact integral and the value approximated using the composite trapezoidal rule as a function of the number of subintervals $n$ for the four different integrals labeled in the legend.}
+  \label{fig:trapezoid_error}
+\end{figure}
+
+\section{Using the Nyström method to solve Laplace's equation}
+
+\subsection{Solving the exterior Neumann problem}
+Taking the boundary to be the unit circle $\Gamma = {(x,y) : \sqrt{x^2 + y^2} = 1}$ with the Neumann boundary condition on the boundary being
+\begin{equation}
+  \left. \p{u}{\bm{n}} \right\rvert_\Gamma =  \frac{1}{3 + 2\cos\theta + \cos(2\theta)}
+\end{equation}
+where $\theta \in [-\pi, \pi]$, $x = \cos\theta$, and $y = \sin\theta$. For the exterior Neumann problem, the monopole integral formulation is given by
+\begin{equation}
+  \p{u_\Gamma(\bm{x})}{\bm{n}}
+  = -\pi\sigma(\bm{x}) - \mathrm{P.V.}\int_\Gamma \frac{\bm{x-x'}}{\norm{\bm{x-x'}}^2} \cdot \bm{n} \, \sigma(\bm{x}) \, d\Gamma'
+\end{equation}
+
+Choosing $n$ equally collocation points $\{\theta_i\}_{i=1}^n$ on the boundary and discretizing the integral using a Gaussian quadrature scheme with evaluation points chosen to coincide with the collocation points, we get
+\begin{multline*}
+  \frac{1}{3 + 2\cos\theta_i + \cos(2\theta_i)}
+  = -\pi\sigma(\bm{x}_i) - \mathrm{P.V.}\int_\Gamma \frac{\bm{x_i}-\bm{x'}}{\norm{\bm{x_i}-\bm{x'}}^2} \cdot \bm{n} \, \sigma(\bm{x_i}) \, d\Gamma' \\
+  = -\pi \sigma_i - \sumop_{j=1}^n w_j \frac{\bm{x_i}-\bm{x}_j}{\norm{\bm{x_i}-\bm{x}_j}^2} \cdot \bm{n} \, \sigma_i
+\end{multline*}
+where $\bm{x}_i = (\cos\theta_i, \sin\theta_i)$, $\mathrm{P.V.}$ denotes the Cauchy principal value of the integral, $w_j$ are the quadrature weights, $\sigma(\bm{x}_i) \equiv \sigma_i$ so that $\bm{\sigma}$ denotes the discrete version of $\sigma(\bm{x})$, and $\bm{n} = (n_x, n_y) = (\cos\theta, \sin\theta)$ denotes the unit normal vector pointing out of the boundary.
+
+Taking $\bm{x}_i = (\cos\theta, \sin\theta)$, we see that
+\begin{equation*}
+  \norm{\bm{x_i}-\bm{x}_j}^2 = 
+\end{equation*}
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.7\linewidth]{matrix_heatmap.png}
+  \caption{Heatmap of the elements of the $A$ matrix used to solve for $\bm{\sigma}$ via $A\bm{\sigma} = \bm{b}$.}
+  \label{fig:matrix_heatmap}
+\end{figure}
+
+\subsection{Implementing the Nyström method}
+
+The exact solution is given by
+\begin{equation}
+  \sigma(\theta) = -\frac{1}{\pi} \left( \frac{I}{2} + f(\theta) \right), \quad \theta \in [-\pi, \pi]
+\end{equation}
+where 
+\begin{equation}
+  f(\theta) = \frac{1}{3 + 2\cos\theta + \cos(2\theta)}
+\end{equation}
+and where
+\begin{equation*}
+  I = - \frac{1}{2\pi} \int_{-\pi}^\pi f(\theta) \, d\theta
+  = -\frac{1}{6} \sqrt{3 + 2\sqrt{3}}
+\end{equation*}
+where the integral was evaluated using Mathematica.
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=\linewidth]{sigma_solution.png}
+  \caption{Plot of $\sigma(\theta)$ for various values of $n$. The exact solution is shown as a dashed green curve to allow for comparison with the approximate solutions.}
+  \label{fig:sigma_solution}
+\end{figure}
+
+\begin{figure}[!htb]
+  \centering
+  \includegraphics[width=0.9\linewidth]{sigma_error.png}
+  \caption{The absolute error in the approximate solution $\bm{\sigma}_n$ compared to the exact value. Some data points appear to be missing at values of $n$ that result in zero error due to the value of $\log 0$ being undefined. (Note: the $y$-axis should be labeled ``absolute error''.)}
+  \label{fig:sigma_error}
+\end{figure}
+
+\subsection{Solving the interior Neumann problem}
+
+\subsection{Solving the exterior Neumann problem on an elliptical boundary}
 
 \end{document}
