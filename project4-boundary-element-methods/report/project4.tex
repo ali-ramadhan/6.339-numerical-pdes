@@ -128,6 +128,14 @@ where we used the fact that $x_i - c_i = c_i - x_{i+1} = - (x_{i+1} - c_i)$. The
 \end{equation*}
 
 \subsection{Implementation of the composite trapezoidal rule}
+Implementing the composite trapezoidal rule in MATLAB, we can use it to approximate integrals. We will investigate its accuracy in approximating the following four analytically integrable integrals
+\begin{align*}
+  & \mathrm{(i)} \int_2^{10} 3x \, dx = 144, \quad
+    & \mathrm{(ii)} & \int_0^\pi \sin x \, dx = 2 \\
+  & \mathrm{(iii)} \int_0^1 e^{2\cos(2\pi x)} \, dx = I_0(2), \quad
+    & \mathrm{(iv)}&  \int_0^{2\pi} |\cos x| \, dx = 4
+\end{align*}
+where $I_\nu(z)$ denotes the modified Bessel function of the first kind. We attempt to approximate the value of the definite integrals using $n=1,2,\dots,100$ subintervals.
 
 \begin{figure}[!htb]
   \centering
@@ -135,6 +143,12 @@ where we used the fact that $x_i - c_i = c_i - x_{i+1} = - (x_{i+1} - c_i)$. The
   \caption{The absolute error $E_n[f]$ between the exact integral and the value approximated using the composite trapezoidal rule as a function of the number of subintervals $n$ for the four different integrals labeled in the legend.}
   \label{fig:trapezoid_error}
 \end{figure}
+
+Figure \ref{fig:trapezoid_error} shows the absolute error $E_n[f]$ between the approximated integral and the approximated value. We see that the trapezoidal rule is exact for integral (i) no matter the number of subintervals. This is because the trapezoidal rule is exact for any function whose second derivative $f''(x) = 0$ everywhere, which includes first-order polynomials such as $3x$.
+
+For integral (ii) the composite trapezoidal rule seems to converge quadratically as $n$ is increased, as we expect since the error scales as $n^{-2}$. The same can be said for integral (iv) however it exhibits an oscillatory behavior due to the undefined nature of the derivative of the absolute value function at $x=\pi/2$ and $x=3\pi/2$ causing the composite trapezoidal rule to successively overestimate then underestimate the integral each time $n$ is incremented.
+
+For integral (iv) the convergence is exponential or spectral.
 
 \section{Using the Nyström method to solve Laplace's equation}
 
