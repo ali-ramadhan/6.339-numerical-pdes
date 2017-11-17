@@ -139,28 +139,57 @@ where we used the fact that $x_i - c_i = c_i - x_{i+1} = - (x_{i+1} - c_i)$. The
 \section{Using the Nyström method to solve Laplace's equation}
 
 \subsection{Solving the exterior Neumann problem}
-Taking the boundary to be the unit circle $\Gamma = {(x,y) : \sqrt{x^2 + y^2} = 1}$ with the Neumann boundary condition on the boundary being
+Taking the boundary to be the unit circle $\Gamma = \{(x,y) : \sqrt{x^2 + y^2} = 1\}$ with the Neumann boundary condition on the boundary being
 \begin{equation}
   \left. \p{u}{\bm{n}} \right\rvert_\Gamma =  \frac{1}{3 + 2\cos\theta + \cos(2\theta)}
 \end{equation}
 where $\theta \in [-\pi, \pi]$, $x = \cos\theta$, and $y = \sin\theta$. For the exterior Neumann problem, the monopole integral formulation is given by
 \begin{equation}
-  \p{u_\Gamma(\bm{x})}{\bm{n}}
-  = -\pi\sigma(\bm{x}) - \mathrm{P.V.}\int_\Gamma \frac{\bm{x-x'}}{\norm{\bm{x-x'}}^2} \cdot \bm{n} \, \sigma(\bm{x}) \, d\Gamma'
+  \p{u_\Gamma(\bm{x})}{\bm{n}(\bm{x})}
+  = -\pi\sigma(\bm{x}) - \mathrm{P.V.}\int_\Gamma \frac{\bm{x-x'}}{\norm{\bm{x-x'}}^2} \cdot \bm{n}(\bm{x}) \, \sigma(\bm{x}') \, d\Gamma'
 \end{equation}
 
 Choosing $n$ equally collocation points $\{\theta_i\}_{i=1}^n$ on the boundary and discretizing the integral using a Gaussian quadrature scheme with evaluation points chosen to coincide with the collocation points, we get
 \begin{multline*}
   \frac{1}{3 + 2\cos\theta_i + \cos(2\theta_i)}
-  = -\pi\sigma(\bm{x}_i) - \mathrm{P.V.}\int_\Gamma \frac{\bm{x_i}-\bm{x'}}{\norm{\bm{x_i}-\bm{x'}}^2} \cdot \bm{n} \, \sigma(\bm{x_i}) \, d\Gamma' \\
-  = -\pi \sigma_i - \sumop_{j=1}^n w_j \frac{\bm{x_i}-\bm{x}_j}{\norm{\bm{x_i}-\bm{x}_j}^2} \cdot \bm{n} \, \sigma_i
+  = -\pi\sigma(\bm{x}_i) - \mathrm{P.V.}\int_\Gamma \frac{\bm{x_i}-\bm{x}'}{\norm{\bm{x_i}-\bm{x}'}^2} \cdot \bm{n}(\bm{x}) \, \sigma(\bm{x}') \, d\Gamma' \\
+  = -\pi \sigma_i - \sumop_{j=1}^n w_j \frac{\bm{x_i}-\bm{x}_j}{\norm{\bm{x_i}-\bm{x}_j}^2} \cdot \bm{n}(\bm{x}_i) \, \sigma_j  \, , \quad i = 1,2,\dots,n 
 \end{multline*}
-where $\bm{x}_i = (\cos\theta_i, \sin\theta_i)$, $\mathrm{P.V.}$ denotes the Cauchy principal value of the integral, $w_j$ are the quadrature weights, $\sigma(\bm{x}_i) \equiv \sigma_i$ so that $\bm{\sigma}$ denotes the discrete version of $\sigma(\bm{x})$, and $\bm{n} = (n_x, n_y) = (\cos\theta, \sin\theta)$ denotes the unit normal vector pointing out of the boundary.
+where $\bm{x}_i = (\cos\theta_i, \sin\theta_i)$, $\mathrm{P.V.}$ denotes the Cauchy principal value of the integral, $w_j$ are the quadrature weights, $\sigma(\bm{x}_i) \equiv \sigma_i$ so that $\bm{\sigma}$ denotes the discrete version of $\sigma(\bm{x})$, and $\bm{n}(\bm{x}) = (n_x, n_y) = (\cos\theta, \sin\theta)$ denotes the unit normal vector pointing out of the boundary.
 
 Taking $\bm{x}_i = (\cos\theta, \sin\theta)$, we see that
+\begin{multline*}
+  \norm{\bm{x_i}-\bm{x}_j}^2
+  = (\cos\theta_i - \cos\theta_j)^2 + (\sin\theta_i - \sin\theta_j)^2 \\
+  = \cos^2\theta_i - 2\cos\theta_i\cos\theta_j + \cos^2\theta_j + \sin\theta_j + \sin^2\theta_i - 2\sin\theta_i\sin\theta_j + \sin^2\theta_j \\
+   = 2(1 - \cos\theta_i\cos\theta_j - \sin\theta_i\sin\theta_j)
+\end{multline*}
+as $\sin^2\vartheta + \cos^2\vartheta = 1$. The dot product becomes
 \begin{equation*}
-  \norm{\bm{x_i}-\bm{x}_j}^2 = 
+  (\bm{x}_i - \bm{x}_j) \cdot \bm{n}(\bm{x}_i)
+  = (\cos\theta_i - \cos\theta_j)\cos\theta_i + (\sin\theta_i - \sin\theta_j)\sin\theta_i
+  = 1 - \cos\theta_i\cos\theta_j - \sin\theta_i\theta_j
 \end{equation*}
+which is exactly half the denominator ans so we get that
+\begin{equation*}
+  \frac{\bm{x_i}-\bm{x}_j}{\norm{\bm{x_i}-\bm{x}_j}^2} \cdot \bm{n}(\bm{x}_i)
+  = \frac{1 - \cos\theta_i\cos\theta_j - \sin\theta_i\theta_j}{2(1 - \cos\theta_i\cos\theta_j - \sin\theta_i\theta_j)}
+  = \frac{1}{2}
+\end{equation*}
+even for the self term ($i=j$) where $\theta_i \rightarrow \theta_j$ as the numerator and denominator both go to zero at the same rate. The discretized problem becomes a system of $n$ linear equations 
+\begin{equation*}
+  \frac{1}{3 + 2\cos\theta_i + \cos(2\theta_i)}
+  = -\pi\sigma_i - \sumop_{j=1}^n \frac{w_j}{2} \sigma_j \, , \quad i = 1,2,\dots,n
+\end{equation*}
+where we are interested in solving for $\bm{\sigma} = (\sigma_1, \sigma_2, \dots, \sigma_n)$.
+
+The problem may be easily solved by casting it as a matrix equation $A\bm{\sigma} = \bm{b}$ where
+\begin{equation*}
+  A_{ii} = -\pi, \quad
+  A_{ij} = \frac{w_j}{2} = \frac{\pi}{n}, \quad
+  b_i = \frac{1}{3 + 2\cos\theta_i + \cos(2\theta_i)}
+\end{equation*}
+where we took equal quadrature weights in accordance with the midpoint rule such that $w_j = 2\pi/n$.
 
 \begin{figure}[!htb]
   \centering
@@ -169,9 +198,13 @@ Taking $\bm{x}_i = (\cos\theta, \sin\theta)$, we see that
   \label{fig:matrix_heatmap}
 \end{figure}
 
-\subsection{Implementing the Nyström method}
+The magnitude of the elements of the $A$ matrix are shown as a heatmap in figure \ref{fig:matrix_heatmap}. We notice the diagonal contains the largest elements, and indeed the matrix is diagonally dominant as
+\begin{equation*}
+A_{ii} = |-\pi| > (n-1)\left\lvert \frac{\pi}{n} \right\rvert = \sumop_{j\ne i} |A_{ij}|
+\end{equation*}
+but just barely. The matrix is full and the off-diagonal elements are small, and all equal.
 
-The exact solution is given by
+We are given the exact solution as
 \begin{equation}
   \sigma(\theta) = -\frac{1}{\pi} \left( \frac{I}{2} + f(\theta) \right), \quad \theta \in [-\pi, \pi]
 \end{equation}
@@ -179,12 +212,12 @@ where
 \begin{equation}
   f(\theta) = \frac{1}{3 + 2\cos\theta + \cos(2\theta)}
 \end{equation}
-and where
+and
 \begin{equation*}
   I = - \frac{1}{2\pi} \int_{-\pi}^\pi f(\theta) \, d\theta
   = -\frac{1}{6} \sqrt{3 + 2\sqrt{3}}
 \end{equation*}
-where the integral was evaluated using Mathematica.
+where the integral was evaluated using Mathematica. Using this we can compare our solution with the exact solution.
 
 \begin{figure}[!htb]
   \centering
@@ -193,6 +226,15 @@ where the integral was evaluated using Mathematica.
   \label{fig:sigma_solution}
 \end{figure}
 
+Figure \ref{fig:sigma_solution} shows the approximate discrete solution $\sigma_i$ for various values of $n$, with the exact solution superimposed for comparison. The approximate solution converges to the exact solution, being virtually indistinguishable when $n=500$. Actually, if each point was connected with a straight line, the solution at $n=50$ would have been indistinguishable from the exact solution.
+
+\subsection{Error analysis}
+We can repeatedly solve the problem for $\sigma_i$ for various values of $n$ and compute the error between the approximate and exact solutions for each value of $n$. The error is calculated using
+\begin{equation*}
+  e_n = \sumop_{i=1}^n \lvert \sigma_i - \sigma(\theta_i) \rvert
+\end{equation*}
+where $\sigma_i$ is the approximate solution at $\bm{x}_i$ and $\sigma(\theta_i)$ is the exact solution evaluated at $\bm{x}_i = (\cos\theta_i, \sin\theta_i)$.
+
 \begin{figure}[!htb]
   \centering
   \includegraphics[width=0.9\linewidth]{sigma_error.png}
@@ -200,7 +242,20 @@ where the integral was evaluated using Mathematica.
   \label{fig:sigma_error}
 \end{figure}
 
+Figure \ref{fig:sigma_error} shows the absolute error $e_n$ as a function of the number of points $n$. We see that in this particular case, we achieve exponential convergence, nearing machine epsilon precision at around $n=40$. It seems that the error increases linearly beyond that point, possibly due to an accumulation of many small errors, each of which are near machine epsilon.
+
 \subsection{Solving the interior Neumann problem}
+In attempting to solve the interior Neumann problem with the same boundary $\Gamma$ and Neumann boundary condition,
+\begin{equation}
+\p{u_\Gamma(\bm{x})}{\bm{n}}
+= +\pi\sigma(\bm{x}) - \mathrm{P.V.}\int_\Gamma \frac{\bm{x-x'}}{\norm{\bm{x-x'}}^2} \cdot \bm{n}(\bm{x}) \, \sigma(\bm{x}') \, d\Gamma'
+\end{equation}
+we a get an almost identical system of linear equations
+\begin{equation*}
+\frac{1}{3 + 2\cos\theta_i + \cos(2\theta_i)}
+= +\pi\sigma_i - \sumop_{j=1}^n \frac{\pi}{n} \sigma_j \, , \quad i = 1,2,\dots,n
+\end{equation*}
+however, when the matrix of the system $A$ is assembled, we find that $\det A = 0$ and the matrix is actually singular. 
 
 \subsection{Solving the exterior Neumann problem on an elliptical boundary}
 
