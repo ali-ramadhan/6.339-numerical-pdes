@@ -186,7 +186,7 @@ For integral (ii) the composite trapezoidal rule seems to converge quadratically
 
 \subsection{Exponential convergence of the trapezoidal rule}
 
-For integral (iv) the convergence is surprisingly exponential. It turns out that this is a well-known property of the composite trapezoidal rule when the integrand is a periodic entire function over the complex plane such as $e^{2\cos(2\pi x)}$. The other periodic integrands, $\sin x$ and $|\cos x|$, are indeed periodic but they are not entire on the complex plane. Note that a complex-valued function $f(z)$ is \emph{entire} if it is \emph{holomorphic}, that is it is complex-differentiable everywhere on the complex plane.
+For integral (iv) the convergence is surprisingly exponential. It turns out that this is a well-known property of the composite trapezoidal rule when the integrand is a periodic entire function over the complex plane such as $e^{2\cos(2\pi x)}$. The other periodic integrands, $\sin x$ and $|\cos x|$, are indeed periodic but they are not entire on the complex plane. Note that a complex-valued function $f(z)$ is \emph{entire} if it is \emph{holomorphic}, that is it is complex-differentiable in a neighbourhood of every point in its domain in the complex plane.
 
 \section{Using the Nyström method to solve Laplace's equation}
 
@@ -312,5 +312,27 @@ however, when the matrix of the system $A$ is assembled, we find that $\det A = 
 The reason for the existence of infinitely many solutions is inherent to interior Neumann problems in general, and has to do with the fact that $\norm{(I+K)^{-1}}$ is not bounded. Recalling the theorem for integrals of the second kind from class, this breaks the unique solvability assumption of the theorem.
 
 \subsection{Solving the exterior Neumann problem on an elliptical boundary}
+Solving the exterior Neumann problem on an elliptical boundary requires the use the parameterization $\bm{x} = (a\cos\theta, b\sin\theta)$ for the ellipse where $a$ and $b$ are the semi-minor and semi-major axes respectively. We also rely on the Wolfram Mathworld article on the ellipse. The
+\begin{equation*}
+\frac{\bm{x_i}-\bm{x}_j}{\norm{\bm{x_i}-\bm{x}_j}^2} \cdot \bm{n}(\bm{x}_i)
+\end{equation*}
+term does not simplify as was the case for a circular boundary, and so we will not worry about doing so. The normal vector is
+\begin{equation*}
+	\bm{n}(\bm{x}) = \frac{1}{\sqrt{a^2\sin^2\theta + b^2\cos^2\theta}} (b\cos\theta \, \hat{\bm{x}} + a\sin\theta \, \hat{\bm{y}} )
+\end{equation*}
+however the challenge becomes choosing the $n$ equally spaced points along the perimeter of the ellipse so that we may continue using the midpoint quadrature integration scheme. To choose these points we must calculate the perimeter of the ellipse as
+\begin{equation*}
+	p = aE(2\pi, e)
+\end{equation*}
+where $e = \sqrt{1 - b^2/a^2}$ is the eccentricity of the ellipse and
+\begin{equation}
+	E(\phi,k) = \int_0^\phi \sqrt{1 - k^2\sin^2\theta} \, d\theta
+\end{equation}
+is the incomplete elliptic integral of the second kind, and can be calculated in MATLAB using the \texttt{ellipticE(phi, k)} function. Once the perimeter is calculated, we split it up into $n$ equal sections and find which $\theta_i$ corresponds to endpoints of each section. We may then proceed as usual taking $\bm{x}_i = (a\cos\theta_i, b\sin\theta_i)$. It will also be useful the calculate the arc length using
+\begin{equation*}
+	s(t) = aE(t,e) , \quad t = \arctan \left(\frac{a}{b} \tan\theta \right)
+\end{equation*}
+
+Unfortunately you must be careful when calculating $t$ to use the correct branch of the $\arctan$ function, and this is where I leave this project be.
 
 \end{document}
